@@ -1,0 +1,258 @@
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  background: #f6f7fb;
+}
+
+.sidebar {
+  background: #fff;
+  border-right: 1px solid #eee;
+  padding: 16px;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 18px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f6f7fb;
+  margin-bottom: 12px;
+}
+
+.nav {
+  display: grid;
+  gap: 8px;
+}
+
+.navItem {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  background: #fff;
+  color: #222;
+}
+
+.active {
+  background: #f0f4ff;
+  border-color: #d7e2ff;
+  font-weight: 700;
+}
+
+.main {
+  padding: 16px;
+}
+
+/* --- 上部：進捗 --- */
+.progressSection {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.progressHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+}
+
+.progressMeta {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.progressPercent {
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.progressHint {
+  font-size: 12px;
+  color: #666;
+}
+
+.progressBarWrap {
+  margin-top: 12px;
+  height: 10px;
+  background: #f3f4f7;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.progressBar {
+  height: 100%;
+  border-radius: 999px;
+  background: #d7e2ff; /* 1色だけの淡いバー */
+}
+
+.stats {
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  min-width: 140px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  background: #fafafa;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #666;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+/* --- ロードマップ --- */
+.roadmapSection {
+  margin-top: 16px;
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 16px;
+}
+
+.sectionSubTitle {
+  font-size: 12px;
+  color: #666;
+}
+
+.roadmapGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* 画面が狭い時は2列→1列に落とす */
+@media (max-width: 1100px) {
+  .roadmapGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid #eee;
+  }
+  .roadmapGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.roadmapCard {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  display: grid;
+  gap: 12px;
+}
+
+.roadmapHead {
+  display: grid;
+  gap: 6px;
+}
+
+.roadmapTitle {
+  margin: 0;
+  font-size: 14px;
+}
+
+.roadmapDesc {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.taskBlock {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background: #fafafa;
+  padding: 12px;
+}
+
+.taskBlockTitle {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.taskList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.taskItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  background: #fff;
+}
+
+.taskTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ghostButton {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  background: #fff;
+  cursor: pointer;
+
+  &:hover {
+    background: #fafafa;
+  }
+}

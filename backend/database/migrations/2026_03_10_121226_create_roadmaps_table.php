@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('roadmaps', function (Blueprint $table) {
             $table->id();
+            $table->string('key')->unique()->comment('frontend / backend / infra など');
+            $table->string('title')->comment('ロードマップ名');
+            $table->text('description')->nullable()->comment('説明文');
+            $table->unsignedInteger('sort_order')->default(0)->comment('表示順');
+            $table->boolean('is_active')->default(true)->comment('有効フラグ');
             $table->timestamps();
         });
     }

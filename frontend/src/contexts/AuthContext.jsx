@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { fetchUser, login as loginApi, logout as logoutApi } from "../api/auth";
 
 const AuthContext = createContext(null);
@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [authChecked, setAuthChecked] = useState(false);
 
     const refreshUser = async () => {
         const userData = await fetchUser();
@@ -25,12 +26,40 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
-        await logoutApi();
-        setUser(null);
+        setLoading(true);
+        try {
+            await logoutApi();
+            setUser(null);
+        } finally {
+            setLoading(false);
+        }
     };
 
+    useEffect(() => {
+        const initAuth = async () => {
+            try {
+                await refreshUser();
+            } catch (error) {
+                setUser(null);
+            } finally {
+                setAuthChecked(true);
+            }
+        };
+
+        initAuth();
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+        <AuthContext.Provider
+            value={{
+                user,
+                loading,
+                authChecked,
+                login,
+                logout,
+                refreshUser,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );

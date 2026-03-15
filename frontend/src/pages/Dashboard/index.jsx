@@ -1,52 +1,71 @@
+// frontend/src/pages/Dashboard/index.jsx
+
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { fetchTasks, groupByCategory } from "../../api/tasks";
+import DonutChart from "../../components/DonutChart";
 import styles from "./style.module.scss";
 
-export default function Dashboard() {
-    const progress = {
-        total: 36,
-        done: 12,
-        inReview: 4,
-        todo: 20,
-    };
-    const percent = Math.round((progress.done / progress.total) * 100);
+function getNextTask(tasks) {
+    return (
+        tasks.find((t) => t.status === "todo") ||
+        tasks.find((t) => t.status === "in_review") ||
+        null
+    );
+}
 
-    const roadmaps = [
-        {
-            key: "frontend",
-            title: "フロントエンドロードマップ",
-            description: "React / UI / 状態管理 / テスト など",
-            tasks: [
-                { id: "fe-1", title: "React基礎：コンポーネント分割", status: "おすすめ" },
-                { id: "fe-2", title: "状態管理：useState/useEffect演習", status: "おすすめ" },
-                { id: "fe-3", title: "ルーティング：React Router 入門", status: "おすすめ" },
-            ],
-        },
-        {
-            key: "serverside",
-            title: "サーバサイドエンジニアロードマップ",
-            description: "API / DB / 認証 / 設計 など",
-            tasks: [
-                { id: "be-1", title: "REST API設計：エンドポイント設計", status: "おすすめ" },
-                { id: "be-2", title: "DB基礎：正規化とインデックス", status: "おすすめ" },
-                { id: "be-3", title: "認証：JWT/セッション比較", status: "おすすめ" },
-            ],
-        },
-        {
-            key: "infra",
-            title: "インフラエンジニアロードマップ",
-            description: "Docker / CI/CD / 監視 など",
-            tasks: [
-                { id: "in-1", title: "Docker：Dockerfileとcompose基礎", status: "おすすめ" },
-                { id: "in-2", title: "CI/CD：GitHub Actions入門", status: "おすすめ" },
-                { id: "in-3", title: "監視：メトリクス/ログ/アラート設計", status: "おすすめ" },
-            ],
-        },
-    ];
+export default function Dashboard() {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const [tasks, setTasks] = useState([]);
+    const [roadmap, setRoadmap] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const loadTasks = async () => {
+            try {
+                const data = await fetchTasks();
+                setTasks(data);
+                setRoadmap(groupByCategory(data));
+            } catch (err) {
+                console.error("課題一覧取得エラー", err);
+                setError("課題一覧の取得に失敗しました");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadTasks();
+    }, []);
+
+    const progress = {
+        total:    tasks.length,
+        done:     tasks.filter((t) => t.status === "done").length,
+        inReview: tasks.filter((t) => t.status === "in_review").length,
+        todo:     tasks.filter((t) => t.status === "todo").length,
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate("/");
+        } catch (err) {
+            console.error("ログアウトに失敗しました", err);
+        }
+    };
+
+    const statusLabel = {
+        todo:      "未着手",
+        in_review: "レビュー中",
+        done:      "完了",
+    };
 
     return (
         <div className={styles.shell}>
             <aside className={styles.sidebar}>
                 <div className={styles.brand}>ROUTEPLUS</div>
-
                 <nav className={styles.nav}>
                     <div className={`${styles.navItem} ${styles.active}`}>ダッシュボード</div>
                     <div className={styles.navItem}>ロードマップ（仮）</div>
@@ -55,18 +74,20 @@ export default function Dashboard() {
             </aside>
 
             <main className={styles.main}>
+
+                {/* ── 上段：ヘッダー ＋ 統計カード ── */}
                 <section className={styles.progressSection}>
                     <header className={styles.progressHeader}>
-                        <h1 className={styles.pageTitle}>ダッシュボード</h1>
-                        <div className={styles.progressMeta}>
-                            <span className={styles.progressPercent}>{percent}%</span>
-                            <span className={styles.progressHint}>完了 / 全課題</span>
+                        <div>
+                            <h1 className={styles.pageTitle}>ダッシュボード</h1>
+                            <p className={styles.userName}>
+                                こんにちは、{user?.name ?? "ゲスト"} さん
+                            </p>
                         </div>
+                        <button className={styles.logoutButton} onClick={handleLogout}>
+                            ログアウト
+                        </button>
                     </header>
-
-                    <div className={styles.progressBarWrap} aria-label="progress">
-                        <div className={styles.progressBar} style={{ width: `${percent}%` }} />
-                    </div>
 
                     <div className={styles.stats}>
                         <div className={styles.stat}>
@@ -82,53 +103,94 @@ export default function Dashboard() {
                             <div className={styles.statValue}>{progress.inReview}</div>
                         </div>
                         <div className={styles.stat}>
-                            <div className={styles.statLabel}>未着手/対応中</div>
+                            <div className={styles.statLabel}>未着手</div>
                             <div className={styles.statValue}>{progress.todo}</div>
                         </div>
                     </div>
                 </section>
 
-                <section className={styles.roadmapSection}>
-                    <div className={styles.sectionTitleRow}>
-                        <h2 className={styles.sectionTitle}>ロードマップ</h2>
-                        <div className={styles.sectionSubTitle}>
-                            3つの分岐からおすすめ課題を表示（仮データ）
-                        </div>
-                    </div>
+                {loading && <p>読み込み中...</p>}
+                {error && <p>{error}</p>}
 
-                    <div className={styles.roadmapGrid}>
-                        {roadmaps.map((rm) => (
-                            <article key={rm.key} className={styles.roadmapCard}>
-                                <div className={styles.roadmapHead}>
-                                    <h3 className={styles.roadmapTitle}>{rm.title}</h3>
-                                    <p className={styles.roadmapDesc}>{rm.description}</p>
-                                </div>
+                {!loading && !error && (
+                    <>
+                        {/* ── 中段：次のおすすめ課題 ＋ 円グラフ ── */}
+                        <section className={styles.recommendSection}>
+                            <h2 className={styles.sectionTitle}>📌 次のおすすめ課題</h2>
 
-                                <div className={styles.taskBlock}>
-                                    <div className={styles.taskBlockTitle}>おすすめ課題</div>
+                            <div className={styles.recommendGrid}>
+                                {roadmap.map((group) => {
+                                    const next = getNextTask(group.tasks);
+                                    const groupDone = group.tasks.filter(
+                                        (t) => t.status === "done"
+                                    ).length;
 
-                                    <ul className={styles.taskList}>
-                                        {rm.tasks.map((t) => (
-                                            <li key={t.id} className={styles.taskItem}>
-                                                <span className={styles.taskTitle}>{t.title}</span>
-                                                <span className={styles.pill}>{t.status}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                    return (
+                                        <div key={group.category} className={styles.recommendCard}>
+                                            {/* 左：カテゴリ名 ＋ おすすめタスク */}
+                                            <div className={styles.recommendLeft}>
+                                                <span className={styles.recommendCategory}>
+                                                    {group.category}
+                                                </span>
 
-                                <div className={styles.cardFooter}>
-                                    <button
-                                        className={styles.ghostButton}
-                                        onClick={() => alert(`${rm.title}（仮）`)}
-                                    >
-                                        このロードマップを見る
-                                    </button>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
-                </section>
+                                                {next ? (
+                                                    <>
+                                                        <p className={styles.recommendTitle}>
+                                                            {next.title}
+                                                        </p>
+                                                        <span className={`${styles.pill} ${styles[next.status]}`}>
+                                                            {statusLabel[next.status]}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <p className={styles.recommendComplete}>
+                                                        🎉 完了！
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* 右：円グラフ */}
+                                            <div className={styles.recommendRight}>
+                                                <DonutChart
+                                                    done={groupDone}
+                                                    total={group.tasks.length}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
+
+                        {/* ── 下段：学習ロードマップ（3列） ── */}
+                        <section className={styles.roadmapSection}>
+                            <h2 className={styles.sectionTitle}>学習ロードマップ</h2>
+
+                            <div className={styles.roadmapGrid}>
+                                {roadmap.map((group) => (
+                                    <div key={group.category} className={styles.roadmapCard}>
+                                        <h3 className={styles.categoryTitle}>
+                                            {group.category}
+                                        </h3>
+
+                                        <ul className={styles.taskList}>
+                                            {group.tasks.map((task) => (
+                                                <li key={task.id} className={styles.taskItem}>
+                                                    <span className={styles.taskTitle}>
+                                                        {task.title}
+                                                    </span>
+                                                    <span className={`${styles.pill} ${styles[task.status]}`}>
+                                                        {statusLabel[task.status] || task.status}
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    </>
+                )}
             </main>
         </div>
     );

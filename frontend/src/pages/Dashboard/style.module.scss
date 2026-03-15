@@ -1,3 +1,6 @@
+// frontend/src/pages/Dashboard/style.module.scss
+
+// ── レイアウト ────────────────────────────────────
 .shell {
   min-height: 100vh;
   display: grid;
@@ -31,6 +34,11 @@
   border: 1px solid #eee;
   background: #fff;
   color: #222;
+  cursor: pointer;
+
+  &:hover {
+    background: #f6f7fb;
+  }
 }
 
 .active {
@@ -41,9 +49,12 @@
 
 .main {
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-/* --- 上部：進捗 --- */
+// ── 上段：ヘッダー ＋ 統計カード ────────────────────
 .progressSection {
   background: #fff;
   border: 1px solid #eee;
@@ -64,35 +75,22 @@
   font-size: 20px;
 }
 
-.progressMeta {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
-}
-
-.progressPercent {
-  font-weight: 800;
-  font-size: 22px;
-}
-
-.progressHint {
-  font-size: 12px;
+.userName {
+  margin: 6px 0 0;
+  font-size: 13px;
   color: #666;
 }
 
-.progressBarWrap {
-  margin-top: 12px;
-  height: 10px;
-  background: #f3f4f7;
-  border-radius: 999px;
-  overflow: hidden;
+.logoutButton {
+  padding: 8px 12px;
+  border-radius: 12px;
   border: 1px solid #eee;
-}
+  background: #fff;
+  cursor: pointer;
 
-.progressBar {
-  height: 100%;
-  border-radius: 999px;
-  background: #d7e2ff; /* 1色だけの淡いバー */
+  &:hover {
+    background: #fafafa;
+  }
 }
 
 .stats {
@@ -120,92 +118,103 @@
   font-weight: 800;
 }
 
-/* --- ロードマップ --- */
-.roadmapSection {
-  margin-top: 16px;
-}
-
-.sectionTitleRow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 2px;
-}
-
-.sectionTitle {
-  margin: 0;
-  font-size: 16px;
-}
-
-.sectionSubTitle {
-  font-size: 12px;
-  color: #666;
-}
-
-.roadmapGrid {
-  margin-top: 12px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-/* 画面が狭い時は2列→1列に落とす */
-@media (max-width: 1100px) {
-  .roadmapGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (max-width: 720px) {
-  .shell {
-    grid-template-columns: 1fr;
-  }
-  .sidebar {
-    border-right: none;
-    border-bottom: 1px solid #eee;
-  }
-  .roadmapGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.roadmapCard {
+// ── 中段：次のおすすめ課題 ────────────────────────
+.recommendSection {
   background: #fff;
   border: 1px solid #eee;
   border-radius: 16px;
-  padding: 14px;
+  padding: 16px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.sectionTitle {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.recommendGrid {
   display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
-.roadmapHead {
-  display: grid;
+.recommendCard {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-left: 4px solid #4f46e5;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.recommendLeft {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
+  flex: 1;
+  min-width: 0;
 }
 
-.roadmapTitle {
+.recommendRight {
+  flex-shrink: 0;
+}
+
+.recommendCategory {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4f46e5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.recommendTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a2e;
   margin: 0;
-  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.roadmapDesc {
+.recommendComplete {
+  font-size: 0.9rem;
+  color: #065f46;
+  font-weight: 600;
   margin: 0;
-  font-size: 12px;
-  color: #666;
 }
 
-.taskBlock {
+// ── 下段：学習ロードマップ ─────────────────────────
+.roadmapSection {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.roadmapGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.roadmapCard {
+  background: #fafafa;
   border: 1px solid #eee;
   border-radius: 12px;
-  background: #fafafa;
-  padding: 12px;
+  padding: 14px;
 }
 
-.taskBlockTitle {
-  font-size: 12px;
+.categoryTitle {
+  font-size: 14px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin: 0 0 10px;
+  color: #1a1a2e;
 }
 
 .taskList {
@@ -220,7 +229,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 10px;
+  padding: 10px;
   border-radius: 10px;
   border: 1px solid #eee;
   background: #fff;
@@ -230,29 +239,62 @@
   flex: 1;
   min-width: 0;
   font-size: 13px;
-}
-
-.pill {
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid #ddd;
-  font-size: 12px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.cardFooter {
-  display: flex;
-  justify-content: flex-end;
+// ── pill（ステータスバッジ）────────────────────────
+.pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &.done {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &.in_review {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.todo {
+    background: #f1f5f9;
+    color: #64748b;
+  }
 }
 
-.ghostButton {
-  padding: 8px 10px;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  background: #fff;
-  cursor: pointer;
+// ── レスポンシブ ──────────────────────────────────
+@media (max-width: 1100px) {
 
-  &:hover {
-    background: #fafafa;
+  .recommendGrid,
+  .roadmapGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid #eee;
+  }
+
+  .progressHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .recommendGrid,
+  .roadmapGrid {
+    grid-template-columns: 1fr;
   }
 }

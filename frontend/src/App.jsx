@@ -4,7 +4,11 @@ import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 
 function ProtectedRoute({ children }) {
-  const { user } = useAuth();
+  const { user, authChecked } = useAuth();
+
+  if (!authChecked) {
+    return <div style={{ padding: "40px" }}>認証確認中...</div>;
+  }
 
   if (!user) {
     return <Navigate to="/" replace />;
@@ -14,9 +18,18 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
+  const { user, authChecked } = useAuth();
+
+  if (!authChecked) {
+    return <div style={{ padding: "40px" }}>読み込み中...</div>;
+  }
+
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
+      <Route
+        path="/"
+        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+      />
       <Route
         path="/dashboard"
         element={

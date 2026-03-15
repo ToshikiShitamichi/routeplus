@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import styles from "./style.module.scss";
 
 export default function LoginPage() {
     const { login, loading } = useAuth();
@@ -19,9 +20,10 @@ export default function LoginPage() {
             navigate("/dashboard");
         } catch (error) {
             console.error(error);
-
             if (error.response?.data?.errors?.email?.[0]) {
                 setErrorMessage(error.response.data.errors.email[0]);
+            } else if (error.response?.data?.message) {
+                setErrorMessage(error.response.data.message);
             } else {
                 setErrorMessage("ログインに失敗しました。");
             }
@@ -29,36 +31,65 @@ export default function LoginPage() {
     };
 
     return (
-        <div style={{ padding: "40px" }}>
-            <h1>ログイン</h1>
+        <div className={styles.page}>
+            <div className={styles.container}>
 
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: "12px" }}>
-                    <input
-                        type="email"
-                        placeholder="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
+                {/* ロゴ */}
+                <div className={styles.logoWrap}>
+                    <div className={styles.logo}>ROUTEPLUS</div>
+                    <p className={styles.tagline}>学習ロードマップで、着実に前へ。</p>
                 </div>
 
-                <div style={{ marginBottom: "12px" }}>
-                    <input
-                        type="password"
-                        placeholder="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
+                {/* カード */}
+                <div className={styles.card}>
+                    <h2 className={styles.title}>ログイン</h2>
+
+                    <form onSubmit={handleSubmit}>
+                        <div className={styles.field}>
+                            <label className={styles.label}>メールアドレス</label>
+                            <input
+                                className={styles.input}
+                                type="email"
+                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={loading}
+                                required
+                            />
+                        </div>
+
+                        <div className={styles.field}>
+                            <label className={styles.label}>パスワード</label>
+                            <input
+                                className={styles.input}
+                                type="password"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={loading}
+                                required
+                            />
+                        </div>
+
+                        {/* エラーメッセージ（ない時はスペース確保） */}
+                        <div className={styles.errorWrap}>
+                            {errorMessage && (
+                                <p className={styles.error}>{errorMessage}</p>
+                            )}
+                        </div>
+
+                        <button
+                            className={styles.button}
+                            type="submit"
+                            disabled={loading}
+                        >
+                            {loading ? "ログイン中..." : "ログイン"}
+                        </button>
+                    </form>
                 </div>
 
-                {errorMessage && (
-                    <p style={{ color: "red", marginBottom: "12px" }}>{errorMessage}</p>
-                )}
-
-                <button type="submit" disabled={loading}>
-                    {loading ? "ログイン中..." : "ログイン"}
-                </button>
-            </form>
+                <p className={styles.footer}>© 2025 ROUTEPLUS</p>
+            </div>
         </div>
     );
 }

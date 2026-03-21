@@ -15,16 +15,13 @@ Route::get('/', function () {
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-// ↓ 認証が必要なAPIルートをここにまとめる
 Route::middleware('auth')->group(function () {
-
-    Route::get('/api/user', function (Request $request) {
-        return response()->json($request->user());
-    });
-
-    Route::get('/api/tasks', [TaskController::class, 'index']);      // ← 移動
-    Route::get('/api/dashboard', [DashboardController::class, 'index']); // ← 移動
-
+    Route::get('/api/user', fn(Request $request) => response()->json($request->user()));
+    Route::get('/api/tasks', [TaskController::class, 'index']);
+    Route::get('/api/tasks/{id}', [TaskController::class, 'show']);
+    Route::patch('/api/tasks/{id}/status', [TaskController::class, 'updateStatus']); // ← 追加
+    Route::post('/api/tasks/{id}/submit', [TaskController::class, 'submit']);
+    Route::get('/api/dashboard', [DashboardController::class, 'index']);
 });
 
 // Bladeルート（React SPAでは使わないが残しておいてOK）

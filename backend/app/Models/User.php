@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -47,6 +48,11 @@ class User extends Authenticatable
     }
 
     public function taskProgresses(): HasMany
+    {
+        return $this->hasMany(UserTaskProgress::class);
+    }
+
+    public function taskProgress(): HasMany
     {
         return $this->hasMany(UserTaskProgress::class);
     }

@@ -1,4 +1,5 @@
 <?php
+// app/Models/UserTaskProgress.php
 
 namespace App\Models;
 
@@ -7,30 +8,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserTaskProgress extends Model
 {
-    protected $table = 'user_task_progress';
-
     protected $fillable = [
         'user_id',
-        'task_id',
+        'task_master_id',
         'status',
-        'understanding_level',
+        'github_url',
+        'deploy_url',
         'submitted_at',
-        'reviewed_at',
-        'memo',
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
-        'reviewed_at' => 'datetime',
     ];
+
+    public function taskMaster(): BelongsTo
+    {
+        return $this->belongsTo(TaskMaster::class);
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function task(): BelongsTo
-    {
-        return $this->belongsTo(Task::class);
     }
 }

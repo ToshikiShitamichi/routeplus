@@ -1,16 +1,15 @@
-// frontend/src/pages/Dashboard/index.jsx
-
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-import { fetchTasks, groupByCategory } from "../../api/tasks";
-import DonutChart from "../../components/DonutChart";
-import styles from "./style.module.scss";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { fetchTasks, groupByCategory } from '../../api/tasks';
+import DonutChart from '../../components/DonutChart';
+import TaskDetailModal from '../../components/TaskDetailModal';
+import styles from './style.module.scss';
 
 function getNextTask(tasks) {
     return (
-        tasks.find((t) => t.status === "todo") ||
-        tasks.find((t) => t.status === "in_review") ||
+        tasks.find((t) => t.status === 'in_progress') ||
+        tasks.find((t) => t.status === 'todo') ||
         null
     );
 }
@@ -22,7 +21,8 @@ export default function Dashboard() {
     const [tasks, setTasks] = useState([]);
     const [roadmap, setRoadmap] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [error, setError] = useState('');
+    const [selectedTask, setSelectedTask] = useState(null);
 
     useEffect(() => {
         const loadTasks = async () => {
@@ -31,8 +31,8 @@ export default function Dashboard() {
                 setTasks(data);
                 setRoadmap(groupByCategory(data));
             } catch (err) {
-                console.error("課題一覧取得エラー", err);
-                setError("課題一覧の取得に失敗しました");
+                console.error('課題一覧取得エラー', err);
+                setError('課題一覧の取得に失敗しました');
             } finally {
                 setLoading(false);
             }
@@ -40,27 +40,30 @@ export default function Dashboard() {
         loadTasks();
     }, []);
 
-    const progress = {
-        total:    tasks.length,
-        done:     tasks.filter((t) => t.status === "done").length,
-        inReview: tasks.filter((t) => t.status === "in_review").length,
-        todo:     tasks.filter((t) => t.status === "todo").length,
+    const handleSubmitted = (updatedTask) => {
+        setTasks((prev) => {
+            const next = prev.map((t) => t.id === updatedTask.id ? updatedTask : t);
+            setRoadmap(groupByCategory(next));
+            return next;
+        });
     };
 
     const handleLogout = async () => {
         try {
             await logout();
-            navigate("/");
+            navigate('/');
         } catch (err) {
-            console.error("ログアウトに失敗しました", err);
+            console.error('ログアウトに失敗しました', err);
         }
     };
 
-    const statusLabel = {
-        todo:      "未着手",
-        in_review: "レビュー中",
-        done:      "完了",
+    const openTask = (task) => {
+        // 常にtasksから最新データを取得してモーダルを開く
+        const latest = tasks.find((t) => t.id === task.id) ?? task;
+        setSelectedTask(latest);
     };
+
+    const statusLabel = { todo: '未着手', in_progress: '進行中', done: '完了' };
 
     return (
         <div className={styles.shell}>
@@ -75,67 +78,42 @@ export default function Dashboard() {
 
             <main className={styles.main}>
 
-                {/* ── 上段：ヘッダー ＋ 統計カード ── */}
-                <section className={styles.progressSection}>
-                    <header className={styles.progressHeader}>
-                        <div>
-                            <h1 className={styles.pageTitle}>ダッシュボード</h1>
-                            <p className={styles.userName}>
-                                こんにちは、{user?.name ?? "ゲスト"} さん
-                            </p>
-                        </div>
-                        <button className={styles.logoutButton} onClick={handleLogout}>
-                            ログアウト
-                        </button>
-                    </header>
-
-                    <div className={styles.stats}>
-                        <div className={styles.stat}>
-                            <div className={styles.statLabel}>総課題数</div>
-                            <div className={styles.statValue}>{progress.total}</div>
-                        </div>
-                        <div className={styles.stat}>
-                            <div className={styles.statLabel}>完了</div>
-                            <div className={styles.statValue}>{progress.done}</div>
-                        </div>
-                        <div className={styles.stat}>
-                            <div className={styles.statLabel}>レビュー中</div>
-                            <div className={styles.statValue}>{progress.inReview}</div>
-                        </div>
-                        <div className={styles.stat}>
-                            <div className={styles.statLabel}>未着手</div>
-                            <div className={styles.statValue}>{progress.todo}</div>
-                        </div>
+                {/* ── ヘッダー ── */}
+                <div className={styles.pageHeader}>
+                    <div>
+                        <h1 className={styles.pageTitle}>ダッシュボード</h1>
+                        <p className={styles.userName}>こんにちは、{user?.name ?? 'ゲスト'} さん</p>
                     </div>
-                </section>
+                    <button className={styles.logoutButton} onClick={handleLogout}>
+                        ログアウト
+                    </button>
+                </div>
 
                 {loading && <p>読み込み中...</p>}
                 {error && <p>{error}</p>}
 
                 {!loading && !error && (
                     <>
-                        {/* ── 中段：次のおすすめ課題 ＋ 円グラフ ── */}
+                        {/* ── 次のおすすめ課題 ── */}
                         <section className={styles.recommendSection}>
                             <h2 className={styles.sectionTitle}>📌 次のおすすめ課題</h2>
-
                             <div className={styles.recommendGrid}>
                                 {roadmap.map((group) => {
                                     const next = getNextTask(group.tasks);
-                                    const groupDone = group.tasks.filter(
-                                        (t) => t.status === "done"
-                                    ).length;
+                                    const groupDone = group.tasks.filter((t) => t.status === 'done').length;
 
                                     return (
                                         <div key={group.category} className={styles.recommendCard}>
-                                            {/* 左：カテゴリ名 ＋ おすすめタスク */}
                                             <div className={styles.recommendLeft}>
                                                 <span className={styles.recommendCategory}>
                                                     {group.category}
                                                 </span>
-
                                                 {next ? (
                                                     <>
-                                                        <p className={styles.recommendTitle}>
+                                                        <p
+                                                            className={styles.recommendTitle}
+                                                            onClick={() => openTask(next)}
+                                                        >
                                                             {next.title}
                                                         </p>
                                                         <span className={`${styles.pill} ${styles[next.status]}`}>
@@ -143,13 +121,9 @@ export default function Dashboard() {
                                                         </span>
                                                     </>
                                                 ) : (
-                                                    <p className={styles.recommendComplete}>
-                                                        🎉 完了！
-                                                    </p>
+                                                    <p className={styles.recommendComplete}>🎉 完了！</p>
                                                 )}
                                             </div>
-
-                                            {/* 右：円グラフ */}
                                             <div className={styles.recommendRight}>
                                                 <DonutChart
                                                     done={groupDone}
@@ -162,20 +136,20 @@ export default function Dashboard() {
                             </div>
                         </section>
 
-                        {/* ── 下段：学習ロードマップ（3列） ── */}
+                        {/* ── 学習ロードマップ ── */}
                         <section className={styles.roadmapSection}>
                             <h2 className={styles.sectionTitle}>学習ロードマップ</h2>
-
                             <div className={styles.roadmapGrid}>
                                 {roadmap.map((group) => (
                                     <div key={group.category} className={styles.roadmapCard}>
-                                        <h3 className={styles.categoryTitle}>
-                                            {group.category}
-                                        </h3>
-
+                                        <h3 className={styles.categoryTitle}>{group.category}</h3>
                                         <ul className={styles.taskList}>
                                             {group.tasks.map((task) => (
-                                                <li key={task.id} className={styles.taskItem}>
+                                                <li
+                                                    key={task.id}
+                                                    className={styles.taskItem}
+                                                    onClick={() => openTask(task)}
+                                                >
                                                     <span className={styles.taskTitle}>
                                                         {task.title}
                                                     </span>
@@ -192,6 +166,14 @@ export default function Dashboard() {
                     </>
                 )}
             </main>
+
+            {selectedTask && (
+                <TaskDetailModal
+                    task={selectedTask}
+                    onClose={() => setSelectedTask(null)}
+                    onSubmitted={handleSubmitted}
+                />
+            )}
         </div>
     );
 }

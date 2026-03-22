@@ -70,8 +70,15 @@ export default function Dashboard() {
             <aside className={styles.sidebar}>
                 <div className={styles.brand}>ROUTEPLUS</div>
                 <nav className={styles.nav}>
-                    <div className={`${styles.navItem} ${styles.active}`}>ダッシュボード</div>
-                    <div className={styles.navItem}>ロードマップ（仮）</div>
+                    <div className={`${styles.navItem} ${styles.active}`}>
+                        ダッシュボード
+                    </div>
+                    <div
+                        className={styles.navItem}
+                        onClick={() => navigate('/submissions')} // ← 追加
+                    >
+                        提出済み課題
+                    </div>
                     <div className={styles.navItem}>設定（仮）</div>
                 </nav>
             </aside>

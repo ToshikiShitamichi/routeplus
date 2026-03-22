@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
+import Submissions from './pages/Submissions';
 
 function ProtectedRoute({ children }) {
   const { user, authChecked } = useAuth();
@@ -38,6 +39,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/submissions" element={<Submissions />} />
     </Routes>
   );
 }

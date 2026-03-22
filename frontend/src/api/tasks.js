@@ -32,3 +32,9 @@ export function groupByCategory(tasks) {
     });
     return Object.values(map);
 }
+
+// 提出済み課題一覧取得
+export async function fetchSubmissions() {
+    const res = await api.get('/api/submissions');
+    return res.data;
+}

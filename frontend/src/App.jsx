@@ -5,6 +5,8 @@ import Dashboard from "./pages/Dashboard";
 import Submissions from './pages/Submissions';
 import AdminDashboard from './pages/Admin';
 import RegisterPage from './pages/Register';
+import RegisterPublic from './pages/RegisterPublic';
+import SelectPack from './pages/SelectPack';
 
 function ProtectedRoute({ children }) {
   const { user, authChecked } = useAuth();
@@ -44,6 +46,8 @@ function AppRoutes() {
       <Route path="/submissions" element={<Submissions />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/register/public" element={<RegisterPublic />} />
+      <Route path="/select-pack" element={<SelectPack />} />
     </Routes>
   );
 }

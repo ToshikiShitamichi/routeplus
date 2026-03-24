@@ -56,6 +56,12 @@ export default function LoginPage() {
                             {loading ? 'ログイン中...' : 'ログイン'}
                         </button>
                     </form>
+                    <p className={styles.registerLink}>
+                        招待なしで登録する場合は
+                        <span onClick={() => navigate('/register/public')} className={styles.link}>
+                            こちら
+                        </span>
+                    </p>
                 </div>
                 <p className={styles.footer}>© 2025 ROUTEPLUS</p>
             </div>

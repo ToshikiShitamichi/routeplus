@@ -10,6 +10,7 @@ class Invitation extends Model
 {
     protected $fillable = [
         'organization_id',
+        'group_id',
         'invited_by',
         'token',
         'label',
@@ -45,5 +46,9 @@ class Invitation extends Model
 
         // 使用回数が上限未満ならOK
         return $this->used_count < $this->max_uses;
+    }
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
     }
 }

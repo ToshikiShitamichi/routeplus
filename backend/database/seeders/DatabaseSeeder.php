@@ -23,7 +23,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             TaskMasterSeeder::class,
-            AdminSeeder::class, // ← 追加
+            AdminSeeder::class,
+            GroupMigrationSeeder::class,
         ]);
     }
 }

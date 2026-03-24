@@ -74,8 +74,16 @@ class AuthController extends Controller
             'invitation_id'   => $invitation->id,
         ]);
 
-        // ✅ used_at の代わりに used_count を増やす
         $invitation->increment('used_count');
+
+        if ($invitation->group_id) {
+            \App\Models\GroupMember::firstOrCreate([
+                'group_id' => $invitation->group_id,
+                'user_id'  => $user->id,
+            ], [
+                'joined_at' => now(),
+            ]);
+        }
 
         Auth::login($user);
         $request->session()->regenerate();
@@ -84,5 +92,67 @@ class AuthController extends Controller
             'message' => '登録が完了しました',
             'user'    => $user,
         ]);
+    }
+
+    // 招待なしの通常登録
+    public function registerPublic(Request $request)
+    {
+        $request->validate([
+            'name'     => ['required', 'string', 'max:50'],
+            'email'    => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'min:8', 'confirmed'],
+        ]);
+
+        $user = \App\Models\User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => bcrypt($request->password),
+            'role'     => 'guest', // 無所属はguest
+        ]);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return response()->json([
+            'message' => '登録が完了しました',
+            'user'    => $user,
+        ]);
+    }
+
+    // ユーザーが自分でパックを追加
+    public function addPack(Request $request)
+    {
+        $request->validate([
+            'pack_id' => ['required', 'exists:task_packs,id'],
+        ]);
+
+        $user = $request->user();
+
+        $pack = \App\Models\TaskPack::where('id', $request->pack_id)
+            ->where(function ($q) {
+                $q->where('is_official', true)
+                    ->orWhere('is_public', true);
+            })->firstOrFail();
+
+        // パック用のグループを自動作成 or 取得
+        $group = \App\Models\Group::firstOrCreate(
+            ['name' => 'pack_' . $pack->id],
+            [
+                'organization_id' => null,
+                'created_by'      => 1, // システムユーザー
+                'is_public'       => true,
+            ]
+        );
+
+        // グループにパックを紐付け
+        $group->taskPacks()->syncWithoutDetaching([$pack->id]);
+
+        // ユーザーをグループに追加
+        \App\Models\GroupMember::firstOrCreate([
+            'group_id' => $group->id,
+            'user_id'  => $user->id,
+        ], ['joined_at' => now()]);
+
+        return response()->json(['message' => 'パックを追加しました']);
     }
 }

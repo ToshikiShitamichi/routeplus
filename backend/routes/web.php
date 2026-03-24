@@ -15,18 +15,13 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/logout', [AuthController::class, 'logout']);
 
 Route::middleware('auth')->group(function () {
-    Route::get('/api/user', function (Request $request) {
-        return response()->json($request->user());
-    });
+    Route::get('/api/user', fn(Request $request) => response()->json($request->user()));
     Route::get('/api/tasks', [TaskController::class, 'index']);
     Route::get('/api/tasks/{id}', [TaskController::class, 'show']);
     Route::patch('/api/tasks/{id}/status', [TaskController::class, 'updateStatus']);
     Route::post('/api/tasks/{id}/submit', [TaskController::class, 'submit']);
+    Route::get('/api/submissions', [TaskController::class, 'submissions']); // ← 追加
     Route::get('/api/dashboard', [DashboardController::class, 'index']);
-
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__ . '/auth.php';

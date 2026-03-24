@@ -148,4 +148,31 @@ class TaskController extends Controller
             ],
         ]);
     }
+    // 提出済み課題一覧（done のみ）
+    public function submissions(Request $request)
+    {
+        $user = $request->user();
+
+        $submissions = UserTaskProgress::where('user_id', $user->id)
+            ->where('status', 'done')
+            ->with('taskMaster')
+            ->orderBy('submitted_at', 'desc')
+            ->get()
+            ->map(function ($progress) {
+                return [
+                    'id'           => $progress->taskMaster->id,
+                    'category'     => $progress->taskMaster->category,
+                    'order'        => $progress->taskMaster->order,
+                    'level'        => $progress->taskMaster->level,
+                    'title'        => $progress->taskMaster->title,
+                    'description'  => $progress->taskMaster->description,
+                    'status'       => $progress->status,
+                    'github_url'   => $progress->github_url,
+                    'deploy_url'   => $progress->deploy_url,
+                    'submitted_at' => $progress->submitted_at,
+                ];
+            });
+
+        return response()->json($submissions);
+    }
 }

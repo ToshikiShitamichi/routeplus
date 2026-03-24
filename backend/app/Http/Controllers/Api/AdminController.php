@@ -114,15 +114,33 @@ class AdminController extends Controller
         $admin = $this->checkAdmin($request);
 
         $request->validate([
-            'label'    => ['required', 'string', 'max:50'],
+            'label'    => ['nullable', 'string', 'max:50'],
             'max_uses' => ['nullable', 'integer', 'min:0'],
+            'group_id' => ['nullable', 'exists:groups,id'],
         ]);
 
-        $invitation = Invitation::create([
+        // group_idが指定されていない場合はlabelでグループを自動作成
+        $groupId = $request->group_id;
+        if (!$groupId && $request->label) {
+            $group = \App\Models\Group::firstOrCreate(
+                [
+                    'organization_id' => $admin->organization_id,
+                    'name'            => $request->label,
+                ],
+                [
+                    'created_by'  => $admin->id,
+                    'is_public'   => false,
+                ]
+            );
+            $groupId = $group->id;
+        }
+
+        $invitation = \App\Models\Invitation::create([
             'organization_id' => $admin->organization_id,
+            'group_id'        => $groupId,
             'invited_by'      => $admin->id,
-            'token'           => Str::random(32),
-            'label'           => $request->label,
+            'token'           => \Illuminate\Support\Str::random(32),
+            'label'           => $request->label ?: '名称未設定',
             'max_uses'        => $request->max_uses ?? 0,
             'expires_at'      => now()->addDays(7),
         ]);
@@ -179,5 +197,45 @@ class AdminController extends Controller
             'organization' => $invitation->organization->name,
             'label'        => $invitation->label,
         ]);
+    }
+    // ── 組織のグループ一覧 ──
+    public function groups(Request $request)
+    {
+        $admin = $this->checkAdmin($request);
+
+        $groups = \App\Models\Group::where('organization_id', $admin->organization_id)
+            ->withCount('members')
+            ->get()
+            ->map(fn($g) => [
+                'id'           => $g->id,
+                'name'         => $g->name,
+                'description'  => $g->description,
+                'is_public'    => $g->is_public,
+                'members_count' => $g->members_count,
+            ]);
+
+        return response()->json($groups);
+    }
+
+    // ── グループ作成 ──
+    public function createGroup(Request $request)
+    {
+        $admin = $this->checkAdmin($request);
+
+        $request->validate([
+            'name'        => ['required', 'string', 'max:50'],
+            'description' => ['nullable', 'string', 'max:200'],
+            'is_public'   => ['boolean'],
+        ]);
+
+        $group = \App\Models\Group::create([
+            'organization_id' => $admin->organization_id,
+            'created_by'      => $admin->id,
+            'name'            => $request->name,
+            'description'     => $request->description,
+            'is_public'       => $request->is_public ?? false,
+        ]);
+
+        return response()->json($group);
     }
 }

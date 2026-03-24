@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\ProfileController;
@@ -11,17 +12,27 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// 認証不要
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/logout', [AuthController::class, 'logout']);
+Route::post('/auth/register', [AuthController::class, 'register']);           // ← 追加
+Route::get('/api/invitations/verify', [AdminController::class, 'verifyInvitation']); // ← 追加
 
+// 認証が必要
 Route::middleware('auth')->group(function () {
     Route::get('/api/user', fn(Request $request) => response()->json($request->user()));
     Route::get('/api/tasks', [TaskController::class, 'index']);
     Route::get('/api/tasks/{id}', [TaskController::class, 'show']);
     Route::patch('/api/tasks/{id}/status', [TaskController::class, 'updateStatus']);
     Route::post('/api/tasks/{id}/submit', [TaskController::class, 'submit']);
-    Route::get('/api/submissions', [TaskController::class, 'submissions']); // ← 追加
+    Route::get('/api/submissions', [TaskController::class, 'submissions']);
     Route::get('/api/dashboard', [DashboardController::class, 'index']);
-});
 
-require __DIR__ . '/auth.php';
+    // 管理者のみ
+    Route::prefix('api/admin')->group(function () {
+        Route::get('/students', [AdminController::class, 'students']);
+        Route::get('/students/{id}/progress', [AdminController::class, 'studentProgress']);
+        Route::post('/invitations', [AdminController::class, 'createInvitation']);
+        Route::get('/invitations', [AdminController::class, 'invitations']);
+    });
+});

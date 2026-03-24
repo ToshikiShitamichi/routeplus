@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             TaskMasterSeeder::class,
-            // DashboardSeeder::class, ← 削除（古い設計のため不要）
+            AdminSeeder::class, // ← 追加
         ]);
     }
 }

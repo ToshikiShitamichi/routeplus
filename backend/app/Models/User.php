@@ -22,6 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'organization_id',
+        'invitation_id',
     ];
 
     /**
@@ -55,5 +57,26 @@ class User extends Authenticatable
     public function taskProgress(): HasMany
     {
         return $this->hasMany(UserTaskProgress::class);
+    }
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    // 管理者かどうか
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    // 組織に所属しているか
+    public function hasOrganization(): bool
+    {
+        return !is_null($this->organization_id);
+    }
+
+    public function invitation(): BelongsTo
+    {
+        return $this->belongsTo(Invitation::class);
     }
 }

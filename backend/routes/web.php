@@ -20,6 +20,8 @@ Route::post('/auth/logout', [AuthController::class, 'logout']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::get('/api/invitations/verify', [AdminController::class, 'verifyInvitation']);
 Route::get('/api/packs/public', [TaskPackController::class, 'publicPacks']);
+Route::post('/auth/register/public', [AuthController::class, 'registerPublic']);
+Route::get('/api/packs/public', [TaskPackController::class, 'publicPacks']);
 
 // 認証が必要
 Route::middleware('auth')->group(function () {
@@ -30,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/tasks/{id}/submit', [TaskController::class, 'submit']);
     Route::get('/api/submissions', [TaskController::class, 'submissions']);
     Route::get('/api/dashboard', [DashboardController::class, 'index']);
+    Route::post('/api/user/packs', [AuthController::class, 'addPack']);
 
     // 管理者のみ
     Route::prefix('api/admin')->group(function () {

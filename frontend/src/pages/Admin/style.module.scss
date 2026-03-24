@@ -502,3 +502,206 @@
     padding: 2px 10px;
     border-radius: 99px;
 }
+
+// パック管理
+.packForm {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #eee;
+}
+
+.packInputRow {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.checkLabel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #555;
+    cursor: pointer;
+}
+
+.taskSelector {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.selectorLabel {
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    margin: 0 0 12px;
+}
+
+.selectorCategory {
+    margin-bottom: 16px;
+}
+
+.selectorCategoryTitle {
+    font-size: 13px;
+    font-weight: 700;
+    color: #4f46e5;
+    margin: 0 0 8px;
+}
+
+.selectorItems {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.selectorItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #333;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+
+    &:hover {
+        background: #f0f4ff;
+    }
+}
+
+.packList {
+    margin-top: 8px;
+}
+
+.packGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.packCard {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.packCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.packBadges {
+    display: flex;
+    gap: 6px;
+}
+
+.officialBadge {
+    font-size: 11px;
+    font-weight: 700;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 2px 8px;
+    border-radius: 99px;
+}
+
+.publicBadge {
+    font-size: 11px;
+    font-weight: 700;
+    background: #d1fae5;
+    color: #065f46;
+    padding: 2px 8px;
+    border-radius: 99px;
+}
+
+.mineBadge {
+    font-size: 11px;
+    font-weight: 700;
+    background: #f0f4ff;
+    color: #4f46e5;
+    padding: 2px 8px;
+    border-radius: 99px;
+}
+
+.packCount {
+    font-size: 12px;
+    color: #888;
+}
+
+.packName {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.packDesc {
+    font-size: 12px;
+    color: #888;
+    margin: 0;
+}
+
+.packActions {
+    display: flex;
+    gap: 8px;
+}
+
+.packViewButton {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    background: #fff;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover {
+        background: #f6f7fb;
+    }
+}
+
+.packDeleteButton {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid #fed7d7;
+    background: #fff5f5;
+    color: #c53030;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover {
+        background: #fed7d7;
+    }
+}
+
+.packAssign {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.packAssignButton {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #4f46e5;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        opacity: 0.88;
+    }
+}

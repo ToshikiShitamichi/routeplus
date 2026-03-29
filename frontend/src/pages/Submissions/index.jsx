@@ -54,6 +54,9 @@ export default function Submissions() {
                     </div>
                     <div className={styles.headerRight}>
                         <span className={styles.totalBadge}>{submissions.length} 課題完了</span>
+                        <button className={styles.portfolioButton} onClick={() => navigate(`/portfolio/${user?.id}`)}>
+                            ポートフォリオを見る →
+                        </button>
                         <button className={styles.logoutButton} onClick={handleLogout}>ログアウト</button>
                     </div>
                 </div>
@@ -88,6 +91,9 @@ export default function Submissions() {
                                                 <span className={styles.doneBadge}>完了</span>
                                             </div>
                                             <h3 className={styles.taskTitle}>{task.title}</h3>
+                                            {task.product_name && (
+                                                <p className={styles.productName}>📦 {task.product_name}</p>
+                                            )}
                                             <p className={styles.submittedAt}>
                                                 {task.submitted_at
                                                     ? new Date(task.submitted_at).toLocaleDateString('ja-JP')

@@ -7,6 +7,7 @@ export default function TaskDetailModal({ task, onClose, onSubmitted }) {
     const [currentTask, setCurrentTask] = useState(task);
     const [githubUrl, setGithubUrl] = useState('');
     const [deployUrl, setDeployUrl] = useState('');
+    const [productName, setProductName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -31,7 +32,7 @@ export default function TaskDetailModal({ task, onClose, onSubmitted }) {
         setError('');
         setLoading(true);
         try {
-            const result = await submitTask(currentTask.id, { githubUrl, deployUrl });
+            const result = await submitTask(currentTask.id, { githubUrl, deployUrl, productName });
             onSubmitted(result.task);
             onClose();
         } catch (err) {
@@ -75,6 +76,15 @@ export default function TaskDetailModal({ task, onClose, onSubmitted }) {
                             <h2 className={styles.title}>{currentTask.title} - 提出</h2>
                         </div>
                         <form onSubmit={handleSubmit}>
+                            <div className={styles.field}>
+                                <label className={styles.label}>
+                                    プロダクト名 <span className={styles.optional}>（任意）</span>
+                                </label>
+                                <input className={styles.input} type="text"
+                                    placeholder="例: My Portfolio App"
+                                    value={productName} onChange={(e) => setProductName(e.target.value)}
+                                    disabled={loading} />
+                            </div>
                             <div className={styles.field}>
                                 <label className={styles.label}>
                                     GitHub URL <span className={styles.required}>*</span>

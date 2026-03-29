@@ -15,10 +15,11 @@ export async function updateTaskStatus(id, status) {
     return res.data;
 }
 
-export async function submitTask(id, { githubUrl, deployUrl }) {
+export async function submitTask(id, { githubUrl, deployUrl, productName }) {
     const res = await api.post(`/api/tasks/${id}/submit`, {
         github_url: githubUrl,
         deploy_url: deployUrl,
+        product_name: productName,
     });
     return res.data;
 }

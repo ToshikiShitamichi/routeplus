@@ -22,6 +22,7 @@ Route::get('/api/invitations/verify', [AdminController::class, 'verifyInvitation
 Route::get('/api/packs/public', [TaskPackController::class, 'publicPacks']);
 Route::post('/auth/register/public', [AuthController::class, 'registerPublic']);
 Route::get('/api/packs/public', [TaskPackController::class, 'publicPacks']);
+Route::get('/api/portfolio/{userId}', [TaskController::class, 'portfolio']);
 
 // 認証が必要
 Route::middleware('auth')->group(function () {

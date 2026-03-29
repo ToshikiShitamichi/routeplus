@@ -49,6 +49,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/packs/{id}', [TaskPackController::class, 'destroy']);
         Route::post('/packs/{id}/assign', [TaskPackController::class, 'assignToGroup']);
         Route::delete('/packs/{id}/remove', [TaskPackController::class, 'removeFromGroup']);
+        Route::get('/tasks', [App\Http\Controllers\Api\Admin\TaskMasterController::class, 'index']);
+        Route::post('/tasks', [App\Http\Controllers\Api\Admin\TaskMasterController::class, 'store']);
+        Route::patch('/tasks/{taskMaster}', [App\Http\Controllers\Api\Admin\TaskMasterController::class, 'update']);
+        Route::delete('/tasks/{taskMaster}', [App\Http\Controllers\Api\Admin\TaskMasterController::class, 'destroy']);
     });
 
     // グループ関連

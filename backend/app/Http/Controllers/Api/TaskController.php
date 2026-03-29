@@ -109,8 +109,9 @@ class TaskController extends Controller
     public function submit(Request $request, int $id)
     {
         $request->validate([
-            'github_url' => ['required', 'url'],
-            'deploy_url' => ['nullable', 'url'],
+            'github_url'   => ['required', 'url'],
+            'deploy_url'   => ['nullable', 'url'],
+            'product_name' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user = $request->user();
@@ -129,6 +130,7 @@ class TaskController extends Controller
                 'status'       => 'done',
                 'github_url'   => $request->github_url,
                 'deploy_url'   => $request->deploy_url,
+                'product_name' => $request->product_name,
                 'submitted_at' => now(),
             ]
         );
@@ -136,19 +138,21 @@ class TaskController extends Controller
         return response()->json([
             'message' => '提出しました',
             'task' => [
-                'id'          => $task->id,
-                'category'    => $task->category,
-                'order'       => $task->order,
-                'level'       => $task->level,
-                'title'       => $task->title,
-                'description' => $task->description,
-                'status'      => $progress->status,
-                'github_url'  => $progress->github_url,
-                'deploy_url'  => $progress->deploy_url,
+                'id'           => $task->id,
+                'category'     => $task->category,
+                'order'        => $task->order,
+                'level'        => $task->level,
+                'title'        => $task->title,
+                'description'  => $task->description,
+                'status'       => $progress->status,
+                'github_url'   => $progress->github_url,
+                'deploy_url'   => $progress->deploy_url,
+                'product_name' => $progress->product_name,
                 'submitted_at' => $progress->submitted_at,
             ],
         ]);
     }
+
     // 提出済み課題一覧（done のみ）
     public function submissions(Request $request)
     {
@@ -171,9 +175,42 @@ class TaskController extends Controller
                     'github_url'   => $progress->github_url,
                     'deploy_url'   => $progress->deploy_url,
                     'submitted_at' => $progress->submitted_at,
+                    'product_name' => $progress->product_name,
                 ];
             });
 
         return response()->json($submissions);
+    }
+
+    public function portfolio(int $userId)
+    {
+        $submissions = UserTaskProgress::where('user_id', $userId)
+            ->where('status', 'done')
+            ->whereNotNull('deploy_url')
+            ->with('taskMaster')
+            ->orderBy('submitted_at', 'desc')
+            ->get()
+            ->map(function ($progress) {
+                return [
+                    'id'           => $progress->taskMaster->id,
+                    'category'     => $progress->taskMaster->category,
+                    'level'        => $progress->taskMaster->level,
+                    'title'        => $progress->taskMaster->title,
+                    'product_name' => $progress->product_name ?? $progress->taskMaster->title,
+                    'github_url'   => $progress->github_url,
+                    'deploy_url'   => $progress->deploy_url,
+                    'submitted_at' => $progress->submitted_at,
+                ];
+            });
+
+        $user = \App\Models\User::find($userId);
+        if (!$user) {
+            return response()->json(['message' => 'ユーザーが見つかりません'], 404);
+        }
+
+        return response()->json([
+            'user' => ['name' => $user->name],
+            'submissions' => $submissions,
+        ]);
     }
 }

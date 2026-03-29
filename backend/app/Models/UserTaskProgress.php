@@ -15,6 +15,7 @@ class UserTaskProgress extends Model
         'github_url',
         'deploy_url',
         'submitted_at',
+        'product_name',
     ];
 
     protected $casts = [

@@ -5,11 +5,13 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        env('FRONTEND_URL', 'http://localhost:5173'),
-    ],
+'allowed_origins' => [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    env('FRONTEND_URL', 'http://localhost:5173'),
+    'https://www.routeplus.jp',
+    'https://routeplus.jp',
+],
 
     'allowed_origins_patterns' => [],
 

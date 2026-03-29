@@ -47,3 +47,16 @@ export async function registerWithInvitation({ name, email, password, password_c
     });
     return res.data;
 }
+
+// オリジナル課題管理
+export const fetchAdminTasks = () =>
+    api.get('/api/admin/tasks').then(r => r.data);
+
+export const createAdminTask = (data) =>
+    api.post('/api/admin/tasks', data).then(r => r.data);
+
+export const updateAdminTask = (id, data) =>
+    api.patch(`/api/admin/tasks/${id}`, data).then(r => r.data);
+
+export const deleteAdminTask = (id) =>
+    api.delete(`/api/admin/tasks/${id}`).then(r => r.data);

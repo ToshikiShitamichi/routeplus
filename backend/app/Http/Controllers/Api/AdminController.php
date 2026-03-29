@@ -238,4 +238,41 @@ class AdminController extends Controller
 
         return response()->json($group);
     }
+
+    public function joinWithInvitation(Request $request)
+    {
+        $request->validate(['token' => 'required|string']);
+
+        $invitation = \App\Models\Invitation::where('token', $request->token)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$invitation) {
+            return response()->json(['message' => '招待リンクが無効または期限切れです'], 422);
+        }
+
+        $user = $request->user();
+
+        // すでにグループに参加しているか確認
+        if ($invitation->group_id) {
+            $alreadyJoined = \App\Models\GroupMember::where('group_id', $invitation->group_id)
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if ($alreadyJoined) {
+                return response()->json(['message' => 'すでにこのグループに参加しています'], 422);
+            }
+
+            \App\Models\GroupMember::create([
+                'group_id'  => $invitation->group_id,
+                'user_id'   => $user->id,
+                'joined_at' => now(),
+            ]);
+        }
+
+        // 使用回数を更新
+        $invitation->increment('used_count');
+
+        return response()->json(['message' => 'グループに参加しました']);
+    }
 }

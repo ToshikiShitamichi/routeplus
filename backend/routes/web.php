@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/submissions', [TaskController::class, 'submissions']);
     Route::get('/api/dashboard', [DashboardController::class, 'index']);
     Route::post('/api/user/packs', [AuthController::class, 'addPack']);
+    Route::post('/api/invitations/join', [AdminController::class, 'joinWithInvitation']);
 
     // 管理者のみ
     Route::prefix('api/admin')->group(function () {

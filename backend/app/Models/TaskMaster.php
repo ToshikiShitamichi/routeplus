@@ -1,11 +1,8 @@
 <?php
-// app/Models/TaskMaster.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class TaskMaster extends Model
 {
@@ -15,20 +12,28 @@ class TaskMaster extends Model
         'level',
         'title',
         'description',
+        'is_official',
+        'visibility',
+        'organization_id',
+        'created_by',
     ];
 
-    public function userProgress(): HasMany
+    protected $casts = [
+        'is_official' => 'boolean',
+    ];
+
+    public function organization()
     {
-        return $this->hasMany(UserTaskProgress::class);
+        return $this->belongsTo(Organization::class);
     }
 
-    public function taskPacks(): BelongsToMany
+    public function creator()
     {
-        return $this->belongsToMany(
-            TaskPack::class,
-            'task_pack_items',
-            'task_master_id',
-            'task_pack_id'
-        )->withPivot('order');
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function progress()
+    {
+        return $this->hasMany(UserTaskProgress::class);
     }
 }

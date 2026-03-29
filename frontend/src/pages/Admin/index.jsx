@@ -275,7 +275,7 @@ export default function AdminDashboard() {
                             </div>
                             <div className={styles.inviteInputRow}>
                                 <input className={styles.inviteInput} type="text"
-                                    placeholder="グループ名（例: 2024年度Aクラス）"
+                                    placeholder="グループ名"
                                     value={label} onChange={(e) => setLabel(e.target.value)} />
                                 <button className={styles.inviteButton} onClick={handleCreateInvitation}>
                                     発行する
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
                             <h2 className={styles.sectionTitle}>新しいパックを作成</h2>
                             <div className={styles.packInputRow}>
                                 <input className={styles.inviteInput} type="text"
-                                    placeholder="パック名（例: フロントエンド入門コース）"
+                                    placeholder="パック名"
                                     value={packName} onChange={(e) => setPackName(e.target.value)} />
                                 <input className={styles.inviteInput} type="text"
                                     placeholder="説明（任意）"

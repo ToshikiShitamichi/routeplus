@@ -15,7 +15,8 @@ class TaskController extends Controller
         $user = $request->user();
 
         // 全タスクマスターを取得
-        $taskMasters = TaskMaster::orderByRaw("FIELD(category, 'フロントエンド', 'サーバーサイド', 'インフラ')")
+        $taskMasters = TaskMaster::where('is_official', true)
+            ->orderByRaw("FIELD(category, 'フロントエンド', 'サーバーサイド', 'インフラ')")
             ->orderBy('order')
             ->get();
 

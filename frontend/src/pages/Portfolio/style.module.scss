@@ -1,0 +1,142 @@
+.page {
+    min-height: 100vh;
+    background: #f8f9fa;
+    font-family: 'Inter', sans-serif;
+}
+
+.header {
+    background: #1a1a2e;
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.brand {
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    color: #a78bfa;
+    margin-bottom: 1rem;
+}
+
+.name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.count {
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.section {
+    margin-bottom: 3rem;
+}
+
+.category {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-left: 4px solid #a78bfa;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.level {
+    font-size: 0.75rem;
+    background: #ede9fe;
+    color: #7c3aed;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.taskTitle {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.productName {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 1rem;
+}
+
+.links {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.linkDeploy {
+    background: #7c3aed;
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    &:hover {
+        background: #6d28d9;
+    }
+}
+
+.linkGithub {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+
+    &:hover {
+        background: #e2e8f0;
+    }
+}
+
+.date {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.loading,
+.error,
+.empty {
+    text-align: center;
+    padding: 4rem;
+    color: #94a3b8;
+}

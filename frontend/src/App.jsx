@@ -7,6 +7,7 @@ import AdminDashboard from './pages/Admin';
 import RegisterPage from './pages/Register';
 import RegisterPublic from './pages/RegisterPublic';
 import SelectPack from './pages/SelectPack';
+import Portfolio from './pages/Portfolio';
 
 function ProtectedRoute({ children }) {
   const { user, authChecked } = useAuth();
@@ -48,6 +49,7 @@ function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/register/public" element={<RegisterPublic />} />
       <Route path="/select-pack" element={<SelectPack />} />
+      <Route path="/portfolio/:userId" element={<Portfolio />} />
     </Routes>
   );
 }

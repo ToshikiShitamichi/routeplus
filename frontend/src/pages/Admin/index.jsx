@@ -67,10 +67,9 @@ export default function AdminDashboard() {
 
         // グループ一覧取得（パック割り当て用）
         import('../../api/admin').then(({ fetchStudents: _ }) => { });
-        fetch('/api/admin/groups', {
-            credentials: 'include',
-            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-        }).then(r => r.json()).then(setGroups).catch(console.error);
+        import('../../lib/axios').then(({ default: api }) => {
+            api.get('/api/admin/groups').then(r => setGroups(r.data)).catch(console.error);
+        });
     }, []);
 
     // 全課題を取得（パック作成用）

@@ -1,7 +1,8 @@
 import api from '../lib/axios';
 
-export async function fetchTasks() {
-    const res = await api.get('/api/tasks');
+export async function fetchTasks(groupId = null) {
+    const url = groupId ? `/api/tasks?group_id=${groupId}` : '/api/tasks';
+    const res = await api.get(url);
     return res.data;
 }
 

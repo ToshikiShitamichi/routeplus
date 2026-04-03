@@ -8,6 +8,8 @@ import RegisterPage from './pages/Register';
 import RegisterPublic from './pages/RegisterPublic';
 import SelectPack from './pages/SelectPack';
 import Portfolio from './pages/Portfolio';
+import OperatorDashboard from './pages/Operator';
+import RegisterAdminPage from './pages/RegisterAdmin';
 
 function ProtectedRoute({ children }) {
   const { user, authChecked } = useAuth();
@@ -34,7 +36,15 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/"
-        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+        element={
+          user
+            ? user.role === 'operator'
+              ? <Navigate to="/operator" replace />
+              : user.role === 'admin'
+                ? <Navigate to="/admin" replace />
+                : <Navigate to="/dashboard" replace />
+            : <LoginPage />
+        }
       />
       <Route
         path="/dashboard"
@@ -50,6 +60,8 @@ function AppRoutes() {
       <Route path="/register/public" element={<RegisterPublic />} />
       <Route path="/select-pack" element={<SelectPack />} />
       <Route path="/portfolio/:userId" element={<Portfolio />} />
+      <Route path="/operator" element={<OperatorDashboard />} />
+      <Route path="/register/admin" element={<RegisterAdminPage />} />
     </Routes>
   );
 }

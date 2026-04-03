@@ -29,12 +29,12 @@ export default function Submissions() {
         return acc;
     }, {});
 
-    const categoryOrder = ['フロントエンド', 'サーバーサイド', 'インフラ'];
+    const categoryOrder = Object.keys(grouped);
 
     return (
         <div className={styles.shell}>
             <aside className={styles.sidebar}>
-                <div className={styles.brand}>ROUTEPLUS</div>
+                <div className={styles.brand}>Route+</div>
                 <nav className={styles.nav}>
                     <div className={styles.navItem} onClick={() => navigate('/dashboard')}>
                         ダッシュボード
@@ -75,7 +75,7 @@ export default function Submissions() {
 
                 {!loading && !error && submissions.length > 0 && (
                     <div className={styles.content}>
-                        {categoryOrder.filter((cat) => grouped[cat]).map((category) => (
+                        {categoryOrder.map((category) => (
                             <section key={category} className={styles.categorySection}>
                                 <h2 className={styles.categoryTitle}>
                                     {category}
@@ -92,7 +92,7 @@ export default function Submissions() {
                                             </div>
                                             <h3 className={styles.taskTitle}>{task.title}</h3>
                                             {task.product_name && (
-                                                <p className={styles.productName}>📦 {task.product_name}</p>
+                                                <p className={styles.productName}>{task.product_name}</p>
                                             )}
                                             <p className={styles.submittedAt}>
                                                 {task.submitted_at

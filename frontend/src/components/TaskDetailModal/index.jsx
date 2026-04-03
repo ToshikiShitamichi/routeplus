@@ -58,7 +58,7 @@ export default function TaskDetailModal({ task, onClose, onSubmitted }) {
                             </span>
                         </div>
                         <p className={styles.description} style={{ whiteSpace: 'pre-line' }}>
-                            {currentTask.description ?? '課題の説明はありません'}
+                            {currentTask.description || '課題の説明はありません'}
                         </p>
                         {currentTask.status !== 'done' && (
                             <button className={styles.submitButton} onClick={() => setView('form')}>

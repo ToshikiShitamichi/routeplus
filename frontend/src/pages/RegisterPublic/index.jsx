@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/axios';
 import styles from './style.module.scss';
 
 export default function RegisterPublic() {
+    const { refreshUser } = useAuth();
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -30,7 +32,7 @@ export default function RegisterPublic() {
                 password,
                 password_confirmation: passwordConfirmation,
             });
-            // 登録後はパック選択画面へ
+            await refreshUser();
             navigate('/select-pack');
         } catch (err) {
             const msg = err.response?.data?.errors
@@ -46,7 +48,7 @@ export default function RegisterPublic() {
         <div className={styles.page}>
             <div className={styles.container}>
                 <div className={styles.logoWrap}>
-                    <div className={styles.logo}>ROUTEPLUS</div>
+                    <div className={styles.logo}>Route+</div>
                     <p className={styles.tagline}>新規登録</p>
                 </div>
 

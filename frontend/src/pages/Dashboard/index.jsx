@@ -102,7 +102,6 @@ export default function Dashboard() {
                     >
                         提出済み課題
                     </div>
-                    <div className={styles.navItem}>設定（仮）</div>
                 </nav>
             </aside>
 

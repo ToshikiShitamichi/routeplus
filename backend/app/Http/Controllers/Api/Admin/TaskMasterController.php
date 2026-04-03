@@ -36,15 +36,15 @@ class TaskMasterController extends Controller
 
         $validated = $request->validate([
             'category'    => 'required|string|max:100',
-            'order'       => 'required|integer|min:1',
             'level'       => 'required|integer|min:1',
             'title'       => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'visibility'  => 'required|in:private,public',
         ]);
 
         $task = TaskMaster::create([
             ...$validated,
+            'order'           => 0,
             'is_official'     => false,
             'organization_id' => $request->user()->organization_id,
             'created_by'      => $request->user()->id,

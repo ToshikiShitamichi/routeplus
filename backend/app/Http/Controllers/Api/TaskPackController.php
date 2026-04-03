@@ -23,22 +23,20 @@ class TaskPackController extends Controller
     {
         $admin = $this->checkAdmin($request);
 
-        $packs = TaskPack::where(function ($q) use ($admin) {
-            $q->where('organization_id', $admin->organization_id)
-                ->orWhere('is_official', true)
-                ->orWhere('is_public', true);
-        })
+        $packs = TaskPack::where('organization_id', $admin->organization_id)
             ->withCount('items')
+            ->with(['groups' => fn($q) => $q->where('organization_id', $admin->organization_id)])
             ->get()
             ->map(fn($pack) => [
-                'id'           => $pack->id,
-                'name'         => $pack->name,
-                'description'  => $pack->description,
-                'is_official'  => $pack->is_official,
-                'is_public'    => $pack->is_public,
-                'is_mine'      => $pack->organization_id === $admin->organization_id,
-                'items_count'  => $pack->items_count,
-                'created_by'   => $pack->creator?->name,
+                'id'              => $pack->id,
+                'name'            => $pack->name,
+                'description'     => $pack->description,
+                'is_official'     => $pack->is_official,
+                'is_public'       => $pack->is_public,
+                'is_mine'         => true,
+                'items_count'     => $pack->items_count,
+                'created_by'      => $pack->creator?->name,
+                'assigned_groups' => $pack->groups->map(fn($g) => ['id' => $g->id, 'name' => $g->name]),
             ]);
 
         return response()->json($packs);
@@ -66,6 +64,7 @@ class TaskPackController extends Controller
                 'level'    => $task->level,
                 'title'    => $task->title,
                 'pack_order' => $task->pivot->order,
+                'pack_item_id' => $task->pivot->id,
             ]),
         ]);
     }
@@ -207,5 +206,24 @@ class TaskPackController extends Controller
             ]);
 
         return response()->json($packs);
+    }
+
+    public function reorder(Request $request, $id)
+    {
+        $this->checkAdmin($request);
+
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|integer',
+            'items.*.order' => 'required|integer',
+        ]);
+
+        foreach ($request->items as $item) {
+            \App\Models\TaskPackItem::where('id', $item['id'])
+                ->where('task_pack_id', $id)
+                ->update(['order' => $item['order']]);
+        }
+
+        return response()->json(['message' => '順番を更新しました']);
     }
 }

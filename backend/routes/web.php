@@ -23,6 +23,7 @@ Route::get('/api/packs/public', [TaskPackController::class, 'publicPacks']);
 Route::post('/auth/register/public', [AuthController::class, 'registerPublic']);
 Route::get('/api/packs/public', [TaskPackController::class, 'publicPacks']);
 Route::get('/api/portfolio/{userId}', [TaskController::class, 'portfolio']);
+Route::post('/auth/register/admin', [AuthController::class, 'registerAdmin']);
 
 // 認証が必要
 Route::middleware('auth')->group(function () {
@@ -35,6 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/dashboard', [DashboardController::class, 'index']);
     Route::post('/api/user/packs', [AuthController::class, 'addPack']);
     Route::post('/api/invitations/join', [AdminController::class, 'joinWithInvitation']);
+    Route::get('/api/user/packs', [AuthController::class, 'myPacks']);
 
     // 管理者のみ
     Route::prefix('api/admin')->group(function () {
@@ -55,6 +57,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/tasks', [App\Http\Controllers\Api\Admin\TaskMasterController::class, 'store']);
         Route::patch('/tasks/{taskMaster}', [App\Http\Controllers\Api\Admin\TaskMasterController::class, 'update']);
         Route::delete('/tasks/{taskMaster}', [App\Http\Controllers\Api\Admin\TaskMasterController::class, 'destroy']);
+        Route::patch('/packs/{id}/reorder', [TaskPackController::class, 'reorder']);
+        Route::get('/all-tasks', [TaskController::class, 'allTasksForAdmin']);
+    });
+
+    // 運営者のみ
+    Route::prefix('api/operator')->group(function () {
+        Route::get('/organizations', [App\Http\Controllers\Api\OperatorController::class, 'organizations']);
+        Route::post('/organizations', [App\Http\Controllers\Api\OperatorController::class, 'createOrganization']);
+        Route::post('/invitations', [App\Http\Controllers\Api\OperatorController::class, 'createAdminInvitation']);
+        Route::get('/admins', [App\Http\Controllers\Api\OperatorController::class, 'admins']);
+        Route::get('/tasks', [App\Http\Controllers\Api\OperatorController::class, 'officialTasks']);
+        Route::post('/tasks', [App\Http\Controllers\Api\OperatorController::class, 'createOfficialTask']);
+        Route::patch('/tasks/{taskMaster}', [App\Http\Controllers\Api\OperatorController::class, 'updateOfficialTask']);
+        Route::delete('/tasks/{taskMaster}', [App\Http\Controllers\Api\OperatorController::class, 'deleteOfficialTask']);
     });
 
     // グループ関連

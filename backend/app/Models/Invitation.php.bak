@@ -18,7 +18,6 @@ class Invitation extends Model
         'used_count',
         'expires_at',
         'used_at',
-        'is_admin_invite',
     ];
 
     protected $casts = [

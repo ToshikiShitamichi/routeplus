@@ -13,32 +13,70 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        $groupId = $request->query('group_id');
 
-        // 全タスクマスターを取得
-        $taskMasters = TaskMaster::where('is_official', true)
-            ->orderByRaw("FIELD(category, 'フロントエンド', 'サーバーサイド', 'インフラ')")
-            ->orderBy('order')
-            ->get();
+        if ($groupId) {
+            $taskMasterIds = \App\Models\GroupTaskPack::where('group_id', $groupId)
+                ->with('taskPack.items')
+                ->get()
+                ->flatMap(fn($gtp) => $gtp->taskPack ? $gtp->taskPack->items->sortBy('order')->pluck('task_master_id') : [])
+                ->unique()
+                ->values();
 
-        // このユーザーの進捗を取得（task_master_id => progress のマップ）
-        $progressMap = UserTaskProgress::where('user_id', $user->id)
+            $taskMasters = TaskMaster::whereIn('id', $taskMasterIds)
+                ->get()
+                ->sortBy(fn($task) => $taskMasterIds->search($task->id))
+                ->values();
+        } else {
+            // すべてタブ：ユーザーの全グループのパックをまとめて表示
+            $groupIds = \App\Models\GroupMember::where('user_id', $user->id)
+                ->pluck('group_id');
+
+            $taskMasterIds = \App\Models\GroupTaskPack::whereIn('group_id', $groupIds)
+                ->with('taskPack.items')
+                ->get()
+                ->flatMap(fn($gtp) => $gtp->taskPack ? $gtp->taskPack->items->sortBy('order')->pluck('task_master_id') : [])
+                ->unique()
+                ->values();
+
+            if ($taskMasterIds->isEmpty()) {
+                // パック未割り当て：フロントエンド入門 or HTML/CSS をデフォルト表示
+                $defaultPack = \App\Models\TaskPack::where('name', 'フロントエンド入門')
+                    ->whereNull('organization_id')
+                    ->first()
+                    ?? \App\Models\TaskPack::where('name', 'HTML/CSS')
+                    ->whereNull('organization_id')
+                    ->first();
+
+                if ($defaultPack) {
+                    $taskMasterIds = $defaultPack->items()
+                        ->orderBy('order')
+                        ->pluck('task_master_id');
+                }
+            }
+
+            $taskMasters = TaskMaster::whereIn('id', $taskMasterIds)
+                ->get()
+                ->sortBy(fn($task) => $taskMasterIds->search($task->id))
+                ->values();
+        }
+
+        $progressMap = \App\Models\UserTaskProgress::where('user_id', $user->id)
             ->get()
             ->keyBy('task_master_id');
 
-        // マージして返す
         $tasks = $taskMasters->map(function ($task) use ($progressMap) {
             $progress = $progressMap->get($task->id);
-
             return [
-                'id'          => $task->id,
-                'category'    => $task->category,
-                'order'       => $task->order,
-                'level'       => $task->level,
-                'title'       => $task->title,
-                'description' => $task->description,
-                'status'      => $progress ? $progress->status : 'todo',
-                'github_url'  => $progress ? $progress->github_url : null,
-                'deploy_url'  => $progress ? $progress->deploy_url : null,
+                'id'           => $task->id,
+                'category'     => $task->category,
+                'order'        => $task->order,
+                'level'        => $task->level,
+                'title'        => $task->title,
+                'description'  => $task->description,
+                'status'       => $progress ? $progress->status : 'todo',
+                'github_url'   => $progress ? $progress->github_url : null,
+                'deploy_url'   => $progress ? $progress->deploy_url : null,
                 'submitted_at' => $progress ? $progress->submitted_at : null,
             ];
         });
@@ -212,5 +250,18 @@ class TaskController extends Controller
             'user' => ['name' => $user->name],
             'submissions' => $submissions,
         ]);
+    }
+
+    public function allTasksForAdmin(Request $request)
+    {
+        $user = $request->user();
+        if ($user->role !== 'admin') abort(403);
+
+        $taskMasters = TaskMaster::where('is_official', true)
+            ->orderBy('category')
+            ->orderBy('order')
+            ->get();
+
+        return response()->json($taskMasters);
     }
 }

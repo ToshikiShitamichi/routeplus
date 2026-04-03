@@ -136,10 +136,10 @@ class AuthController extends Controller
 
         // パック用のグループを自動作成 or 取得
         $group = \App\Models\Group::firstOrCreate(
-            ['name' => 'pack_' . $pack->id],
+            ['name' => $pack->name],
             [
                 'organization_id' => null,
-                'created_by'      => 1, // システムユーザー
+                'created_by'      => 1,
                 'is_public'       => true,
             ]
         );
@@ -154,5 +154,63 @@ class AuthController extends Controller
         ], ['joined_at' => now()]);
 
         return response()->json(['message' => 'パックを追加しました']);
+    }
+
+    public function myPacks(Request $request)
+    {
+        $user = $request->user();
+        $groupIds = \App\Models\GroupMember::where('user_id', $user->id)
+            ->pluck('group_id');
+
+        $packIds = \App\Models\GroupTaskPack::whereIn('group_id', $groupIds)
+            ->pluck('task_pack_id')
+            ->unique()
+            ->values();
+
+        return response()->json($packIds);
+    }
+
+    public function registerAdmin(Request $request)
+    {
+        $request->validate([
+            'name'              => ['required', 'string', 'max:50'],
+            'email'             => ['required', 'email', 'unique:users,email'],
+            'password'          => ['required', 'min:8', 'confirmed'],
+            'token'             => ['required', 'string'],
+            'organization_name' => ['required', 'string', 'max:100'],
+        ]);
+
+        $invitation = Invitation::where('token', $request->token)
+            ->where('is_admin_invite', true)
+            ->first();
+
+        if (!$invitation || !$invitation->isValid()) {
+            return response()->json(['message' => '招待リンクが無効または期限切れです'], 422);
+        }
+
+        // 組織を自動作成
+        $organization = \App\Models\Organization::create([
+            'name' => $request->organization_name,
+            'slug' => \Illuminate\Support\Str::slug($request->organization_name . '-' . time()),
+        ]);
+
+        $user = \App\Models\User::create([
+            'name'            => $request->name,
+            'email'           => $request->email,
+            'password'        => bcrypt($request->password),
+            'role'            => 'admin',
+            'organization_id' => $organization->id,
+            'invitation_id'   => $invitation->id,
+        ]);
+
+        $invitation->increment('used_count');
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return response()->json([
+            'message' => '管理者登録が完了しました',
+            'user'    => $user,
+        ]);
     }
 }

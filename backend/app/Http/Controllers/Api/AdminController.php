@@ -194,10 +194,11 @@ class AdminController extends Controller
         }
 
         return response()->json([
-            'organization' => $invitation->organization->name,
+            'organization' => $invitation->organization?->name ?? 'ROUTEPLUS',
             'label'        => $invitation->label,
         ]);
     }
+    
     // ── 組織のグループ一覧 ──
     public function groups(Request $request)
     {

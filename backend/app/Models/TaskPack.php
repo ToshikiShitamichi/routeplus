@@ -45,7 +45,7 @@ class TaskPack extends Model
             'task_pack_items',
             'task_pack_id',
             'task_master_id'
-        )->withPivot('order')->orderBy('task_pack_items.order');
+        )->withPivot('id', 'order')->orderBy('task_pack_items.order');
     }
 
     public function groups(): BelongsToMany

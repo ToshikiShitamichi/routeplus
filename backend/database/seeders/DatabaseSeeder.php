@@ -22,9 +22,9 @@ class DatabaseSeeder extends Seeder
         );
 
         $this->call([
-            TaskMasterSeeder::class,
             AdminSeeder::class,
             GroupMigrationSeeder::class,
+            OfficialDataSeeder::class,
         ]);
     }
 }

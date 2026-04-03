@@ -147,7 +147,7 @@ class AdminController extends Controller
 
         return response()->json([
             'token'      => $invitation->token,
-            'invite_url' => 'http://localhost:5173/register?token=' . $invitation->token,
+            'invite_url' => env('FRONTEND_URL', 'http://localhost:5173') . '/register?token=' . $invitation->token,
             'label'      => $invitation->label,
             'expires_at' => $invitation->expires_at,
             'max_uses'   => $invitation->max_uses,
@@ -167,7 +167,7 @@ class AdminController extends Controller
                 return [
                     'id'          => $inv->id,
                     'token'       => $inv->token,
-                    'invite_url'  => 'http://localhost:5173/register?token=' . $inv->token,
+                    'invite_url'  => env('FRONTEND_URL', 'http://localhost:5173') . '/register?token=' . $inv->token,
                     'label'       => $inv->label,
                     'is_valid'    => $inv->isValid(),
                     'max_uses'    => $inv->max_uses,
@@ -198,7 +198,7 @@ class AdminController extends Controller
             'label'        => $invitation->label,
         ]);
     }
-    
+
     // ── 組織のグループ一覧 ──
     public function groups(Request $request)
     {

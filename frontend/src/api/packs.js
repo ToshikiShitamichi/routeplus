@@ -50,3 +50,13 @@ export async function fetchPublicPacks() {
     const res = await api.get('/api/packs/public');
     return res.data;
 }
+
+export async function reorderPackItems(packId, items) {
+    const res = await api.patch(`/api/admin/packs/${packId}/reorder`, { items });
+    return res.data;
+}
+
+export async function fetchMyPackIds() {
+    const res = await api.get('/api/user/packs');
+    return res.data;
+}

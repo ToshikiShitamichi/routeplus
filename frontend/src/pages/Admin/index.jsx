@@ -8,7 +8,7 @@ import {
 } from '../../api/admin';
 import {
     fetchPacks, createPack, deletePack,
-    assignPackToGroup, fetchPack,
+    assignPackToGroup, fetchPack, reorderPackItems, removePackFromGroup,
 } from '../../api/packs';
 import { fetchMyGroups } from '../../api/groups';
 import styles from './style.module.scss';
@@ -39,7 +39,8 @@ export default function AdminDashboard() {
     const [selectedTaskIds, setSelectedTaskIds] = useState([]);
     const [allTasks, setAllTasks] = useState([]);
     const [packDetail, setPackDetail] = useState(null);
-    const [assignGroupId, setAssignGroupId] = useState('');
+    const [reordering, setReordering] = useState(false);
+    const [assignGroupIds, setAssignGroupIds] = useState({});
 
     // オリジナル課題管理
     const [customTasks, setCustomTasks] = useState([]);
@@ -77,10 +78,9 @@ export default function AdminDashboard() {
         if (tab === 'packs') {
             (async () => {
                 try {
-                    const { fetchTasks } = await import('../../api/tasks');
-                    const official = await fetchTasks();
+                    const { default: api } = await import('../../lib/axios');
+                    const official = await api.get('/api/admin/all-tasks').then(r => r.data);
                     const custom = await fetchAdminTasks();
-                    console.log('公式:', official.length, 'オリジナル:', custom.length);
                     const customTagged = custom.map(t => ({ ...t, _isCustom: true }));
                     setAllTasks([...official, ...customTagged]);
                 } catch (e) {
@@ -134,7 +134,6 @@ export default function AdminDashboard() {
     };
 
     const handleDeletePack = async (id) => {
-        if (!confirm('このパックを削除しますか？')) return;
         await deletePack(id);
         const updated = await fetchPacks();
         setPacks(updated);
@@ -142,15 +141,47 @@ export default function AdminDashboard() {
 
     const handleViewPack = async (id) => {
         const data = await fetchPack(id);
+        data.tasks = [...data.tasks].sort((a, b) => a.pack_order - b.pack_order);
         setPackDetail(data);
     };
 
-    const handleAssignPack = async (packId) => {
-        if (!assignGroupId) return;
-        await assignPackToGroup(packId, Number(assignGroupId));
-        alert('グループに割り当てました');
+    const handleMoveTask = async (taskId, direction) => {
+        if (!packDetail) return;
+        const tasks = [...packDetail.tasks];
+        const idx = tasks.findIndex(t => t.id === taskId);
+        if (direction === 'up' && idx === 0) return;
+        if (direction === 'down' && idx === tasks.length - 1) return;
+
+        const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+        [tasks[idx], tasks[swapIdx]] = [tasks[swapIdx], tasks[idx]];
+
+        const newDetail = { ...packDetail, tasks };
+        setPackDetail(newDetail);
+
+        setReordering(true);
+        try {
+            const items = tasks.map((t, i) => ({ id: t.pack_item_id, order: i + 1 }));
+            await reorderPackItems(packDetail.id, items);
+        } catch (e) {
+            console.error('順番更新失敗', e);
+        } finally {
+            setReordering(false);
+        }
     };
 
+    const handleAssignPack = async (packId) => {
+        const groupId = assignGroupIds[packId];
+        if (!groupId) return;
+        await assignPackToGroup(packId, Number(groupId));
+        const updated = await fetchPacks();
+        setPacks(updated);
+    };
+
+    const handleRemovePackFromGroup = async (packId, groupId) => {
+        await removePackFromGroup(packId, groupId);
+        const updated = await fetchPacks();
+        setPacks(updated);
+    };
 
     const handleTaskFormChange = (e) => {
         const { name, value } = e.target;
@@ -168,8 +199,8 @@ export default function AdminDashboard() {
 
     const handleCreateTask = async () => {
         setTaskError('');
-        if (!taskForm.title.trim() || !taskForm.category.trim()) {
-            setTaskError('カテゴリとタイトルは必須です');
+        if (!taskForm.title.trim() || !taskForm.category.trim() || !taskForm.description.trim()) {
+            setTaskError('カテゴリ・タイトル・説明は必須です');
             return;
         }
         try {
@@ -185,7 +216,12 @@ export default function AdminDashboard() {
     const handleUpdateTask = async () => {
         if (!editingTask) return;
         try {
-            await updateAdminTask(editingTask.id, editingTask);
+            await updateAdminTask(editingTask.id, {
+                title: editingTask.title,
+                description: editingTask.description,
+                level: editingTask.level,
+                visibility: editingTask.visibility,
+            });
             setEditingTask(null);
             const updated = await fetchAdminTasks();
             setCustomTasks(updated);
@@ -195,7 +231,6 @@ export default function AdminDashboard() {
     };
 
     const handleDeleteTask = async (id) => {
-        if (!confirm('この課題を削除しますか？')) return;
         await deleteAdminTask(id);
         const updated = await fetchAdminTasks();
         setCustomTasks(updated);
@@ -238,7 +273,7 @@ export default function AdminDashboard() {
     return (
         <div className={styles.shell}>
             <aside className={styles.sidebar}>
-                <div className={styles.brand}>ROUTEPLUS</div>
+                <div className={styles.brand}>Route+</div>
                 <div className={styles.adminBadge}>管理者</div>
                 <nav className={styles.nav}>
                     {[
@@ -446,10 +481,12 @@ export default function AdminDashboard() {
                                         {/* カテゴリトグルヘッダー */}
                                         <div
                                             className={styles.selectorCategoryTitle}
-                                            onClick={() => toggleCategory(group.category)}
                                             style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                                         >
-                                            <span>
+                                            <span
+                                                onClick={() => toggleCategory(group.category)}
+                                                style={{ flex: 1 }}
+                                            >
                                                 {group.category}
                                                 {group.tasks.some(t => t._isCustom) && (
                                                     <span style={{ fontSize: '0.7rem', marginLeft: '0.5rem', color: '#888' }}>
@@ -457,10 +494,49 @@ export default function AdminDashboard() {
                                                     </span>
                                                 )}
                                             </span>
-                                            <span style={{ fontSize: '0.8rem', color: '#aaa' }}>
-                                                {group.tasks.filter(t => selectedTaskIds.includes(t.id)).length}/{group.tasks.length}件選択
-                                                {openCategories[group.category] ? '▲' : '▼'}
-                                            </span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                {/* 一括選択・解除ボタン */}
+                                                {(() => {
+                                                    const allSelected = group.tasks.every(t => selectedTaskIds.includes(t.id));
+                                                    const someSelected = group.tasks.some(t => selectedTaskIds.includes(t.id));
+                                                    return (
+                                                        <button
+                                                            style={{
+                                                                fontSize: '0.72rem',
+                                                                padding: '0.15rem 0.6rem',
+                                                                borderRadius: '4px',
+                                                                border: '1px solid #7c3aed',
+                                                                background: allSelected ? '#7c3aed' : 'white',
+                                                                color: allSelected ? 'white' : '#7c3aed',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (allSelected) {
+                                                                    // 全解除
+                                                                    setSelectedTaskIds(prev =>
+                                                                        prev.filter(id => !group.tasks.map(t => t.id).includes(id))
+                                                                    );
+                                                                } else {
+                                                                    // 全選択
+                                                                    setSelectedTaskIds(prev =>
+                                                                        [...new Set([...prev, ...group.tasks.map(t => t.id)])]
+                                                                    );
+                                                                }
+                                                            }}
+                                                        >
+                                                            {allSelected ? '全解除' : '全選択'}
+                                                        </button>
+                                                    );
+                                                })()}
+                                                <span
+                                                    onClick={() => toggleCategory(group.category)}
+                                                    style={{ fontSize: '0.8rem', color: '#aaa' }}
+                                                >
+                                                    {group.tasks.filter(t => selectedTaskIds.includes(t.id)).length}/{group.tasks.length}件選択
+                                                    {openCategories[group.category] ? '▲' : '▼'}
+                                                </span>
+                                            </div>
                                         </div>
 
                                         {/* カテゴリ内課題一覧（トグルで開閉） */}
@@ -532,11 +608,32 @@ export default function AdminDashboard() {
                                                 </button>
                                             )}
                                         </div>
+                                        {/* 割り当て済みグループ */}
+                                        {pack.assigned_groups && pack.assigned_groups.length > 0 && (
+                                            <div className={styles.assignedGroups}>
+                                                <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.4rem' }}>
+                                                    割り当て済み：
+                                                </p>
+                                                {pack.assigned_groups.map(g => (
+                                                    <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                                        <span style={{ fontSize: '0.8rem', background: '#ede9fe', color: '#7c3aed', padding: '0.1rem 0.5rem', borderRadius: '999px' }}>
+                                                            {g.name}
+                                                        </span>
+                                                        <button
+                                                            style={{ fontSize: '0.75rem', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
+                                                            onClick={() => handleRemovePackFromGroup(pack.id, g.id)}
+                                                        >
+                                                            外す
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                         {/* グループ割り当て */}
                                         <div className={styles.packAssign}>
                                             <select className={styles.optionSelect}
-                                                value={assignGroupId}
-                                                onChange={(e) => setAssignGroupId(e.target.value)}>
+                                                value={assignGroupIds[pack.id] || ''}
+                                                onChange={(e) => setAssignGroupIds(prev => ({ ...prev, [pack.id]: e.target.value }))}>
                                                 <option value="">グループを選択</option>
                                                 {groups.map(g => (
                                                     <option key={g.id} value={g.id}>{g.name}</option>
@@ -562,21 +659,35 @@ export default function AdminDashboard() {
                         </button>
                         <h2 className={styles.sectionTitle}>{packDetail.name}</h2>
                         {packDetail.description && <p>{packDetail.description}</p>}
+                        {reordering && <p style={{ color: '#888', fontSize: '0.85rem' }}>順番を保存中...</p>}
                         <div className={styles.progressDetail}>
-                            {groupByCategory(packDetail.tasks).map(group => (
-                                <div key={group.category} className={styles.categoryBlock}>
-                                    <h3 className={styles.categoryTitle}>{group.category}</h3>
-                                    <ul className={styles.taskList}>
-                                        {group.tasks.map(task => (
-                                            <li key={task.id} className={styles.taskItem}>
-                                                <span className={styles.taskTitle}>
-                                                    Lv.{task.level} {task.title}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
+                            <ul className={styles.taskList}>
+                                {packDetail.tasks.map((task, idx) => (
+                                    <li key={task.id} className={styles.taskItem}>
+                                        <span className={styles.taskTitle}>
+                                            [{task.category}] Lv.{task.level} {task.title}
+                                        </span>
+                                        <div className={styles.taskRight}>
+                                            <button
+                                                className={styles.backButton}
+                                                onClick={() => handleMoveTask(task.id, 'up')}
+                                                disabled={idx === 0}
+                                                style={{ padding: '0.2rem 0.6rem' }}
+                                            >
+                                                ▲
+                                            </button>
+                                            <button
+                                                className={styles.backButton}
+                                                onClick={() => handleMoveTask(task.id, 'down')}
+                                                disabled={idx === packDetail.tasks.length - 1}
+                                                style={{ padding: '0.2rem 0.6rem' }}
+                                            >
+                                                ▼
+                                            </button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     </section>
                 )}
@@ -594,12 +705,13 @@ export default function AdminDashboard() {
                                 {/* カテゴリ選択 */}
                                 <label className={styles.optionLabel}>カテゴリ</label>
                                 {!isNewCategory ? (
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                         <select
-                                            className={styles.optionSelect}
+                                            className={styles.inviteInput}
                                             name="category"
                                             value={taskForm.category}
                                             onChange={handleTaskFormChange}
+                                            style={{ flex: 1 }}
                                         >
                                             <option value="">カテゴリを選択</option>
                                             {customCategories.map(cat => (
@@ -607,7 +719,8 @@ export default function AdminDashboard() {
                                             ))}
                                         </select>
                                         <button
-                                            className={styles.backButton}
+                                            className={styles.inviteButton}
+                                            style={{ whiteSpace: 'nowrap' }}
                                             onClick={() => {
                                                 setIsNewCategory(true);
                                                 setTaskForm(prev => ({ ...prev, category: '', order: 1 }));
@@ -617,7 +730,7 @@ export default function AdminDashboard() {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                         <input
                                             className={styles.inviteInput}
                                             type="text"
@@ -625,9 +738,11 @@ export default function AdminDashboard() {
                                             placeholder="新しいカテゴリ名"
                                             value={taskForm.category}
                                             onChange={handleTaskFormChange}
+                                            style={{ flex: 1 }}
                                         />
                                         <button
                                             className={styles.backButton}
+                                            style={{ whiteSpace: 'nowrap' }}
                                             onClick={() => {
                                                 setIsNewCategory(false);
                                                 setTaskForm(prev => ({ ...prev, category: '', order: 1 }));
@@ -650,46 +765,42 @@ export default function AdminDashboard() {
                                 />
 
                                 {/* 説明 */}
-                                <label className={styles.optionLabel}>説明（任意）</label>
-                                <input
-                                    className={styles.inviteInput}
-                                    type="text"
-                                    name="description"
-                                    placeholder="説明（任意）"
-                                    value={taskForm.description}
-                                    onChange={handleTaskFormChange}
-                                />
+                                <label className={styles.optionLabel}>説明</label>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                    <textarea
+                                        style={{ flex: 1, resize: 'vertical', fontFamily: 'inherit', minHeight: '180px' }}
+                                        className={styles.inviteInput}
+                                        name="description"
+                                        rows={8}
+                                        placeholder="テンプレートを参考に記入してください"
+                                        value={taskForm.description}
+                                        onChange={handleTaskFormChange}
+                                    /><div style={{
+                                        flex: 1,
+                                        background: '#f8f7ff',
+                                        border: '1px solid #e0deff',
+                                        borderRadius: '8px',
+                                        padding: '10px 14px',
+                                        fontSize: '0.78rem',
+                                        color: '#7c3aed',
+                                        whiteSpace: 'pre-line',
+                                        lineHeight: '1.7',
+                                    }}>
+                                        {`【テンプレート】
+                                            【課題内容】
+                                            ここに課題の概要を書く。
+
+                                            【要件】
+                                            ・要件1
+                                            ・要件2
+
+                                            【提出物】
+                                            ・GitHubリポジトリURL
+                                            ・デプロイURL`}
+                                    </div>
+                                </div>
 
                                 <div style={{ display: 'flex', gap: '1rem' }}>
-                                    {/* 順番 */}
-                                    <label className={styles.optionLabel}>
-                                        順番
-                                        <select
-                                            className={styles.optionSelect}
-                                            name="order"
-                                            value={taskForm.order}
-                                            onChange={handleTaskFormChange}
-                                        >
-                                            {taskForm.category === '' ? (
-                                                <option value={1}>1</option>
-                                            ) : (
-                                                <>
-                                                    {usedOrders.map(o => {
-                                                        const t = customTasks.find(
-                                                            task => task.category === taskForm.category && task.order === o
-                                                        );
-                                                        return (
-                                                            <option key={o} value={o}>
-                                                                {o}. {t ? t.title : ''}（使用中）
-                                                            </option>
-                                                        );
-                                                    })}
-                                                    <option value={nextOrder}>{nextOrder}（末尾に追加）</option>
-                                                </>
-                                            )}
-                                        </select>
-                                    </label>
-
                                     {/* レベル */}
                                     <label className={styles.optionLabel}>
                                         レベル
@@ -733,25 +844,68 @@ export default function AdminDashboard() {
                                 {customTasks.map(task => (
                                     <li key={task.id} className={styles.taskItem}>
                                         {editingTask?.id === task.id ? (
-                                            <>
+                                            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.5rem 0' }}>
                                                 <input className={styles.inviteInput} type="text"
+                                                    placeholder="課題タイトル"
                                                     value={editingTask.title}
                                                     onChange={e => setEditingTask(prev => ({ ...prev, title: e.target.value }))} />
-                                                <input className={styles.inviteInput} type="text"
-                                                    value={editingTask.description || ''}
-                                                    placeholder="説明"
-                                                    onChange={e => setEditingTask(prev => ({ ...prev, description: e.target.value }))} />
-                                                <select className={styles.optionSelect}
-                                                    value={editingTask.visibility}
-                                                    onChange={e => setEditingTask(prev => ({ ...prev, visibility: e.target.value }))}>
-                                                    <option value="private">非公開</option>
-                                                    <option value="public">公開</option>
-                                                </select>
-                                                <div className={styles.taskRight}>
+                                                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                                    <textarea
+                                                        className={styles.inviteInput}
+                                                        rows={8}
+                                                        placeholder="説明"
+                                                        value={editingTask.description || ''}
+                                                        onChange={e => setEditingTask(prev => ({ ...prev, description: e.target.value }))}
+                                                        style={{ flex: 1, resize: 'vertical', fontFamily: 'inherit' }}
+                                                    />
+                                                    <div style={{
+                                                        flex: 1,
+                                                        background: '#f8f7ff',
+                                                        border: '1px solid #e0deff',
+                                                        borderRadius: '8px',
+                                                        padding: '10px 14px',
+                                                        fontSize: '0.78rem',
+                                                        color: '#7c3aed',
+                                                        whiteSpace: 'pre-line',
+                                                        lineHeight: '1.7',
+                                                    }}>
+                                                        {`【テンプレート】
+                                                            【課題内容】
+                                                            ここに課題の概要を書く。
+
+                                                            【要件】
+                                                            ・要件1
+                                                            ・要件2
+
+                                                            【提出物】
+                                                            ・GitHubリポジトリURL
+                                                            ・デプロイURL`}
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                                    <label className={styles.optionLabel}>
+                                                        レベル
+                                                        <select className={styles.optionSelect}
+                                                            value={editingTask.level}
+                                                            onChange={e => setEditingTask(prev => ({ ...prev, level: Number(e.target.value) }))}>
+                                                            {[1, 2, 3, 4, 5].map(lv => <option key={lv} value={lv}>Lv.{lv}</option>)}
+                                                        </select>
+                                                    </label>
+                                                    <label className={styles.optionLabel}>
+                                                        公開設定
+                                                        <select className={styles.optionSelect}
+                                                            value={editingTask.visibility}
+                                                            onChange={e => setEditingTask(prev => ({ ...prev, visibility: e.target.value }))}>
+                                                            <option value="private">非公開</option>
+                                                            <option value="public">公開</option>
+                                                        </select>
+                                                    </label>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                     <button className={styles.inviteButton} onClick={handleUpdateTask}>保存</button>
                                                     <button className={styles.backButton} onClick={() => setEditingTask(null)}>キャンセル</button>
                                                 </div>
-                                            </>
+                                            </div>
                                         ) : (
                                             <>
                                                 <span className={styles.taskTitle}>

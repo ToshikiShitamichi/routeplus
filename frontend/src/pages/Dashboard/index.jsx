@@ -31,7 +31,7 @@ export default function Dashboard() {
         const load = async () => {
             try {
                 const [taskData, groupData] = await Promise.all([
-                    fetchTasks(),
+                    fetchTasks(null),
                     fetchMyGroups(),
                 ]);
                 setTasks(taskData);
@@ -46,6 +46,21 @@ export default function Dashboard() {
         };
         load();
     }, []);
+
+    useEffect(() => {
+        if (loading) return;
+        const loadByTab = async () => {
+            try {
+                const groupId = activeTab === 'all' ? null : activeTab;
+                const taskData = await fetchTasks(groupId);
+                setTasks(taskData);
+                setRoadmap(groupByCategory(taskData));
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        loadByTab();
+    }, [activeTab]);
 
     const handleSubmitted = (updatedTask) => {
         setTasks((prev) => {
@@ -73,7 +88,7 @@ export default function Dashboard() {
     return (
         <div className={styles.shell}>
             <aside className={styles.sidebar}>
-                <div className={styles.brand}>ROUTEPLUS</div>
+                <div className={styles.brand}>Route+</div>
                 <nav className={styles.nav}>
                     <div
                         className={`${styles.navItem} ${styles.active}`}
@@ -100,9 +115,19 @@ export default function Dashboard() {
                             こんにちは、{user?.name ?? 'ゲスト'} さん
                         </p>
                     </div>
-                    <button className={styles.logoutButton} onClick={handleLogout}>
-                        ログアウト
-                    </button>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <button
+                            className={styles.logoutButton}
+                            style={{ background: '#7c3aed', color: '#fff' }}
+                            onClick={() => navigate('/select-pack')}
+                        >
+                            ＋ パックを追加
+                        </button>
+                        <button className={styles.logoutButton} onClick={handleLogout}>
+                            ログアウト
+                        </button>
+                    </div>
+
                 </div>
 
                 {/* ── グループタブ ── */}

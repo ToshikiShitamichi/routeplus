@@ -33,7 +33,7 @@ export default function Portfolio() {
     return (
         <div className={styles.page}>
             <header className={styles.header}>
-                <div className={styles.brand}>ROUTEPLUS</div>
+                <div className={styles.brand}>Route+</div>
                 <h1 className={styles.name}>{data.user.name} さんのポートフォリオ</h1>
                 <p className={styles.count}>{data.submissions.length} 件のプロダクト</p>
             </header>

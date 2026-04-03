@@ -14,8 +14,14 @@ export default function LoginPage() {
         e.preventDefault();
         setErrorMessage('');
         try {
-            await login(email, password);
-            navigate('/dashboard');
+            const userData = await login(email, password);
+            if (userData?.role === 'operator') {
+                navigate('/operator');
+            } else if (userData?.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (error) {
             if (error.response?.data?.errors?.email?.[0]) {
                 setErrorMessage(error.response.data.errors.email[0]);
@@ -31,7 +37,7 @@ export default function LoginPage() {
         <div className={styles.page}>
             <div className={styles.container}>
                 <div className={styles.logoWrap}>
-                    <div className={styles.logo}>ROUTEPLUS</div>
+                    <div className={styles.logo}>Route+</div>
                     <p className={styles.tagline}>学習ロードマップで、着実に前へ。</p>
                 </div>
                 <div className={styles.card}>
@@ -63,7 +69,7 @@ export default function LoginPage() {
                         </span>
                     </p>
                 </div>
-                <p className={styles.footer}>© 2025 ROUTEPLUS</p>
+                <p className={styles.footer}>© 2025 Route+</p>
             </div>
         </div>
     );

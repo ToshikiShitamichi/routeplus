@@ -372,6 +372,13 @@ export default function AdminDashboard() {
                                                                 GitHub
                                                             </a>
                                                         )}
+                                                        {task.deploy_url && (
+                                                            <a href={task.deploy_url} target="_blank" rel="noopener noreferrer"
+                                                                className={styles.taskLink}
+                                                                style={{ background: '#534AB7', color: '#fff' }}>
+                                                                デプロイ
+                                                            </a>
+                                                        )}
                                                         <span className={`${styles.pill} ${styles[task.status]}`}>
                                                             {statusLabel[task.status]}
                                                         </span>

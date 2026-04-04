@@ -1,14 +1,20 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost',
+    baseURL: import.meta.env.VITE_API_URL,
     withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-    },
+    withXSRFToken: true,
 });
+
+api.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response?.status === 401) {
+            window.location.href = '/';
+        }
+        return Promise.reject(error);
+    }
+);
 
 // ✅ リクエスト前にCookieからXSRF-TOKENを取得してヘッダーに付与
 api.interceptors.request.use((config) => {

@@ -42,7 +42,6 @@ export default function Submissions() {
                     <div className={`${styles.navItem} ${styles.active}`}>
                         提出済み課題
                     </div>
-                    <div className={styles.navItem}>設定（仮）</div>
                 </nav>
             </aside>
 
